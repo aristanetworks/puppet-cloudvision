@@ -1,0 +1,32 @@
+{
+  "name": "aristanetworks-cloudvision",
+  "version": "0.1.0",
+  "author": "Arista Networks, EOS+",
+  "summary": "Resource types for managing Arista CloudVision content",
+  "license": "BSD-3-Clause",
+  "source": "https://github.com/aristanetworks/puppet-cloudvision",
+  "project_page": "https://github.com/aristanetworks/puppet-cloudvision",
+  "issues_url": "https://github.com/aristanetworks/puppet-cloudvision/issues",
+  "dependencies": [
+  ],
+  "data_provider": null,
+  "operatingsystem_support": [
+    {
+      "operatingsystem":"AristaCloudVision",
+      "operatingsystemrelease":[
+        "2016.2"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "pe",
+      "version_requirement": "< 2018.1.0"
+    },
+    {
+      "name": "puppet",
+      "version_requirement": ">= 4.0.0 < 6.0.0"
+    }
+  ],
+  "tags": ["network", "netdev", "arista", "eos", "cloudvision", "cvp"]
+}

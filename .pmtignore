@@ -1,0 +1,16 @@
+Gemfile
+Gemfile.lock
+Rakefile
+bootstrap.sh
+coverage/
+data/
+doc/
+example/
+github*.json
+guide/
+pkg/
+results/
+spec/
+test/
+tests/
+vagrantfiles/
