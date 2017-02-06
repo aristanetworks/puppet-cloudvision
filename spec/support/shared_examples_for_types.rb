@@ -50,7 +50,7 @@ end
 
 RSpec.shared_examples 'boolean' do |opts|
   attribute = opts[:attribute]
-  fail unless attribute
+  raise unless attribute
   name = opts[:name] || 'emanon'
 
   describe attribute.to_s do
