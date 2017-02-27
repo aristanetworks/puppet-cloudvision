@@ -53,8 +53,36 @@ module PuppetX
       def api
         return @api if @api
         cvp = CvpClient.new
-        cvp.connect(['10.81.110.79'], 'cvpadmin', 'arista123')
+        cvp_config = load_config
+        cvp.connect(cvp_config['nodes'],
+                    cvp_config['username'],
+                    cvp_config['password'])
         @api = CvpApi.new(cvp)
+      end
+
+      ##
+      # Load a cloudvision.yaml, to get the CVP nodes and credentials to use.
+      #
+      # @param [Hash] :opts The set of options configured on the resource
+      # @option opts [String] :filename Full path to a YAML config file
+      #
+      # @returns [Hash] Ex: {"nodes"=>["192.0.2.101", "192.0.2.102",
+      #   "192.0.2.102"] "username"=>"cvpadmin", "password"=>"arista123"}
+      def load_config(**opts)
+        search_path = ['/mnt/flash/cloudvision.yaml']
+        # Add the home directory path if the HOME environement var is defined.
+        search_path.insert(0, '.cloudvision.yaml') if ENV.key?('HOME')
+        search_path.insert(0, '~/.cloudvision.yaml') if ENV.key?('HOME')
+        search_path.insert(0, ENV['CLOUDVISION_CONF']) if ENV.key?('CLOUDVISION_CONF')
+
+        path = opts[:filename] || search_path
+
+        path.each do |fn|
+          fn = File.expand_path(fn)
+          return YAML.load_file(fn) if File.exist?(fn)
+        end
+
+        raise 'No cloudvision.yaml config found in search path.'
       end
 
       ##
@@ -109,7 +137,7 @@ module PuppetX
       private :map_boolean
 
       ##
-      # convert_keys recursivly converts the type of the keys in the hash.
+      # convert_keys recursively converts the type of the keys in the hash.
       # The keys are converted to either symbols or strings depending on
       # the value of the 'to' parameter.
       #
@@ -121,6 +149,7 @@ module PuppetX
       #   For any other value then the original key is used.
       #
       # @return [Hash] The new converted hash.
+      # rubocop:disable Metrics/MethodLength
       def convert_keys(hash, to)
         hash.each_with_object({}) do |(key, value), result|
           new_key = case key
@@ -136,6 +165,7 @@ module PuppetX
           result
         end
       end
+      # rubocop:enable Metrics/MethodLength
       private :convert_keys
     end
   end
