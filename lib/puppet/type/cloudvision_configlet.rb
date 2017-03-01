@@ -65,6 +65,24 @@ Puppet::Type.newtype(:cloudvision_configlet) do
     end
   end
 
+  newproperty(:containers, :array_matching => :all) do
+    desc <<-EOS
+      List of container names in CVP to associate with the configlet.  May be
+      the FQDN of a network element or the name of a container.
+    EOS
+
+    # Sort the arrays before comparing
+    def insync?(current)
+      current.sort == should.sort
+    end
+
+    validate do |value|
+      unless value.is_a? String
+        raise "value #{value.inspect} is invalid, must be a String."
+      end
+    end
+  end
+
   # Properties (state management)
 
   newparam(:auto_run, :boolean => true, :parent => Puppet::Parameter::Boolean) do
