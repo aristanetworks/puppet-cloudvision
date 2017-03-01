@@ -53,7 +53,6 @@ module PuppetX
       def api
         return @api if @api
         cvp = CvpClient.new
-        cvp_config = load_config
         cvp.connect(cvp_config['nodes'],
                     cvp_config['username'],
                     cvp_config['password'])
@@ -84,6 +83,20 @@ module PuppetX
 
         raise 'No cloudvision.yaml config found in search path.'
       end
+      private :load_config
+
+      ##
+      # Lazily load the cloudvision.yaml
+      #
+      # @param [Hash] :opts The set of options configured on the resource
+      # @option opts [String] :filename Full path to a YAML config file
+      #
+      # @returns [Hash] Ex: {"nodes"=>["192.0.2.101", "192.0.2.102",
+      #   "192.0.2.102"] "username"=>"cvpadmin", "password"=>"arista123"}
+      def cvp_config(**opts)
+        @@config ||= load_config(opts)
+      end
+      private :cvp_config
 
       ##
       # validate checks the set of opts that have been configured for a
