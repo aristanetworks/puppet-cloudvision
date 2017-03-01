@@ -52,6 +52,9 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     configlet = {}
     response['data'].each do |data|
       configlet[data['name']] = { content: data['config'].strip }
+      devices = api.get_devices_by_configlet_name(data['name'])
+      containers = devices['data'].map{ |dev| dev['hostName']} || []
+      configlet[data['name']][:containers] = containers
     end
     configlet
   end
@@ -62,7 +65,8 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     Puppet.debug "configlet_instances: #{configlets.inspect}"
     configlets.map do |name, attrs|
       provider_hash = { name: name, ensure: :present,
-                        content: attrs[:content] }
+                        content: attrs[:content],
+                        containers: attrs[:containers] }
       new(provider_hash)
     end
   end
@@ -88,63 +92,104 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
   #  @property_flush[:auto_run] = value
   # end
 
+  def handle_tasks(task_ids)
+    tasks = Array(tasks) # Ensure array even if given a single string
+    Puppet.debug "CVP handle_tasks auto_run: #{resource.auto_run?}"\
+                 ", task_ids: #{task_ids}"
+    return unless resource.auto_run?
+    task_ids.each do |task_id|
+      result = api.execute_task(task_id)
+      Puppet.debug "CVP task [#{task_id}] started with info: #{result['data']}"
+      status = { 'taskStatus' => nil }
+      while status['taskStatus'] != "COMPLETED" do
+        status = api.get_task_by_id(task_id)
+        Puppet.debug "CVP task [#{task_id}] returned"\
+                     " status: #{status['taskStatus']}"
+        sleep 3
+      end
+    end
+  end
+
   def content=(_value)
-    # @property_flush[:content] = value
     configlet = api.get_configlet_by_name(resource[:name])
-    task_id = api.update_configlet(resource[:name],
-                                   configlet['key'],
-                                   resource[:content])
+    api.update_configlet(resource[:name],
+                         configlet['key'],
+                         resource[:content])
+    tasks = api.get_pending_tasks_by_device(resource[:name])
+    task_ids = tasks.map{ |task| task['workOrderId']} || []
+    handle_tasks(task_ids)
+  end
+
+  def add_configlet_to_element(dev)
+    net_elem = api.get_device_by_name(dev)
+    Puppet.debug "CVP device #{dev} has outstanding tasks before configlet"\
+                 ' is added.' unless net_elem['taskIdList'].length.zero?
+
+    # Add configlet to nodes
+    configlet = api.get_configlet_by_name(resource[:name])
+    apply = api.apply_configlets_to_device('Puppet Assign Host Port Configlet',
+                                           net_elem,
+                                           [{'name' => configlet['name'],
+                                             'key' => configlet['key']}])
+    handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds')
+  end
+
+  def remove_configlet_from_element(dev)
+    net_elem = api.get_device_by_name(dev)
+    Puppet.debug "CVP device #{dev} has outstanding tasks before configlet is"\
+                 ' added.' unless net_elem['taskIdList'].length.zero?
+
+    # Add configlet to nodes
+    configlet = api.get_configlet_by_name(resource[:name])
+    apply = api.remove_configlets_from_device('Puppet Remove Host Port Configlet',
+                                              net_elem,
+                                              [{'name' => configlet['name'],
+                                                'key' => configlet['key']}])
+    handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds')
+  end
+
+  def containers=(_value)
+    removes = @property_hash[:containers] - @resource[:containers]
+    adds = @resource[:containers] - @property_hash[:containers]
+
+    removes.each do |dev|
+      remove_configlet_from_element(dev)
+    end
+
+    adds.each do |dev|
+      add_configlet_to_element(dev)
+    end
   end
 
   def create
     cfglt_id = api.add_configlet(resource[:name],
                                  resource[:content])
     raise "Failed to create configlet #{resource[:name]}" if cfglt_id.empty?
-    Puppet.debug "CVP configlet [#{cfglt_id}] was created.  Auto_run set to #{auto_run}"
-    # require 'pry'
-    # binding.pry
-    if resource.auto_run?
-      task_id = nil # TODO: get form CVP
-      result = api.execute_task(task_id)
-      Puppet.debug "CVP task [#{task_id}] returned status: #{result}"
+    Puppet.debug "CVP configlet [#{cfglt_id}] was created.  Auto_run set"\
+                 " to #{auto_run}"
+    @resource[:containers].each do |dev|
+      add_configlet_to_element(dev)
     end
+
     @property_hash = { name: resource[:name],
                        content: resource[:content] }
   end
 
   def destroy
     configlet = api.get_configlet_by_name(resource[:name])
-    # TODO: get all associates nodes/containers so we can re-apply their configs
+    if configlet['netElementCount'] > 0
+      # Get the network elements
+      devices = api.get_devices_by_configlet_name(resource[:name])
+      #require 'pry'
+      #binding.pry
+      devices['data'].each do |dev|
+        remove_configlet_from_element(dev['hostName'])
+      end
+    end
     status = api.delete_configlet(resource[:name], configlet['key'])
     raise "Failed to delete configlet #{resource[:name]}" if status != 'success'
-    Puppet.debug "CVP task [#{resource[:name]}] was deleted.  Auto_run set to #{auto_run}"
-    # require 'pry'
-    # binding.pry
-    # if auto_run?
-    #  result = api.execute_task(task_id)
-    #  Puppet.debug "CVP task [#{task_id}] returned status: #{result}"
-    # end
+    Puppet.debug "CVP task [#{resource[:name]}] was deleted."\
+                 "  Auto_run set to #{auto_run}"
     @property_hash = { name: resource[:name], ensure: :absent }
   end
-
-  # def flush
-  #  Puppet.debug "Updating configlet: #{resource[:name]}"
-  #  @property_hash.merge!(@property_flush)
-
-  #  # TODO: Do we need to know the node to which to assign a configlet, if we
-  #  # can't assume the blank configlet was pre-created?
-
-  #  task_id = api.set_configlet_content(@property_hash[:name],
-  #                                      @property_hash[:content])
-  #  raise "Failed to set configlet #{@property_hash[:name]} content" if task_id.empty?
-  #  Puppet.debug "CVP task [#{task_id}] was created.  Auto_run set to "\
-  #    "#{auto_run}"
-  #  if resource.auto_run?
-  #    result = api.execute_task(task_id)
-  #    Puppet.debug "CVP task [#{task_id}] returned status: #{result}"
-  #  end
-  #  #api.execute_task(task_id) if @property_hash[:auto_run] == :true
-
-  #  @property_flush = {}
-  # end
 end
