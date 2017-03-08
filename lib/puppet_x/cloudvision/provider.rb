@@ -94,7 +94,7 @@ module PuppetX
       # @returns [Hash] Ex: {"nodes"=>["192.0.2.101", "192.0.2.102",
       #   "192.0.2.102"] "username"=>"cvpadmin", "password"=>"arista123"}
       def cvp_config(**opts)
-        @@config ||= load_config(opts)
+        @config ||= load_config(opts)
       end
       private :cvp_config
 
