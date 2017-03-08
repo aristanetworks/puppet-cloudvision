@@ -70,8 +70,8 @@ module PuppetX
       def load_config(**opts)
         search_path = ['/mnt/flash/cloudvision.yaml']
         # Add the home directory path if the HOME environement var is defined.
-        search_path.insert(0, '.cloudvision.yaml') if ENV.key?('HOME')
         search_path.insert(0, '~/.cloudvision.yaml') if ENV.key?('HOME')
+        search_path.insert(0, '.cloudvision.yaml') if ENV.key?('HOME')
         search_path.insert(0, ENV['CLOUDVISION_CONF']) if ENV.key?('CLOUDVISION_CONF')
 
         path = opts[:filename] || search_path
@@ -162,7 +162,6 @@ module PuppetX
       #   For any other value then the original key is used.
       #
       # @return [Hash] The new converted hash.
-      # rubocop:disable Metrics/MethodLength
       def convert_keys(hash, to)
         hash.each_with_object({}) do |(key, value), result|
           new_key = case key
@@ -178,7 +177,6 @@ module PuppetX
           result
         end
       end
-      # rubocop:enable Metrics/MethodLength
       private :convert_keys
     end
   end
