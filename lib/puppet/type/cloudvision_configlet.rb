@@ -43,13 +43,18 @@ Puppet::Type.newtype(:cloudvision_configlet) do
            no shutdown'
 
         cloudvision_configlet { 'rack3-tor-Ethernet2':
-          ensure   => present,
-          content  => $config,
-          auto_run => true,
+          ensure      => present,
+          content     => $config,
+          containers  => ['fqdn-1', ..., 'fqdn-N'],
+          auto_run    => true,
         }
   EOS
 
   ensurable
+
+  autorequire(:package) do
+    ['cvprac']
+  end
 
   # Parameters
 
