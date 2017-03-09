@@ -28,11 +28,11 @@
 # --------
 #
 # @example
-#    class { 'cloudvision::switchport':
-#      host => 'server3-25',
-#      rack => 'dc1-rack3',
-#      port => '2/14',
-#      template =>  'dc1-esx-host',
+#    cloudvision::switchport { 'server3-25':
+#      rack     => 'dc1-rack3',
+#      port     => '2/14',
+#      template =>  'cloudvision/single_attached_vlan.erb',
+#      vlan     => 123,
 #    }
 #
 # Authors
@@ -76,23 +76,27 @@ define cloudvision::switchport (
   String $rack,
   String $port,
   String $template,
+  Boolean $auto_run = lookup('cloudvision::switchport::auto_run', Boolean,
+    'first', false),
+  Optional[Integer[0, 4094]] $vlan = undef,
 ){
+  $port_range = lookup('cloudvision::switchport::host_port_range')
+  $rack_map = lookup('cloudvision::rack_switch_map')
 
-  #portnum = $port.scanf('%i') |$pval| {}
-  #            unless $pval[0] =~ Integer {
-  #              fail "Invalid network port: ${pval[0]}"
-  #            }
-  #            #unless $x[0] > 0 && $x[0] <= 20 {
-  #            #  fail "Only ports 1-20 may be used. Requested: $x[0]"
-  #            #}
-  #            $pval[0]
-  #          }
-  $portnum = $port.scanf('%i')[0]
-  # Check if portnum is within a valid range
+  $portnum = $port.scanf('%i') |$pval| {
+      unless $pval[0] =~ Integer {
+        fail "Invalid network port: ${pval[0]}"
+      }
+      # Check if portnum is within a valid range
+      unless ($pval[0] >= $port_range[min]) and ($pval[0] <= $port_range[max]) {
+        fail "Only ports 1-20 may be used. Requested: ${pval[0]}"
+      }
+      $pval[0]
+  }
 
   $host = $title
 
-  $tor = "dc1-rack${rack}-tor"
+  $tor = $rack_map[$rack]
   $configlet = "${tor}-port-${portnum}"
   cloudvision_configlet { $configlet:
     content => template($template),
