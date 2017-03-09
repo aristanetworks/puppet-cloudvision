@@ -46,6 +46,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
   # Mix in the api as class methods
   extend PuppetX::Cloudvision::RacProviderMixin
 
+  # rubocop:disable Style/AccessorMethodName
   def self.get_configlets
     response = api.get_configlets
     return [] if !response || response.empty?
@@ -53,11 +54,12 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     response['data'].each do |data|
       configlet[data['name']] = { content: data['config'].strip }
       devices = api.get_devices_by_configlet_name(data['name'])
-      containers = devices['data'].map{ |dev| dev['hostName']} || []
+      containers = devices['data'].map { |dev| dev['hostName'] } || []
       configlet[data['name']][:containers] = containers
     end
     configlet
   end
+  # rubocop:enable Style/AccessorMethodName
 
   def self.instances
     configlets = get_configlets
@@ -93,7 +95,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
   # end
 
   def handle_tasks(task_ids)
-    tasks = Array(tasks) # Ensure array even if given a single string
+    task_ids = Array(task_ids) # Ensure array even if given a single string
     Puppet.debug "CVP handle_tasks auto_run: #{resource.auto_run?}"\
                  ", task_ids: #{task_ids}"
     return unless resource.auto_run?
@@ -101,7 +103,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
       result = api.execute_task(task_id)
       Puppet.debug "CVP task [#{task_id}] started with info: #{result['data']}"
       status = { 'taskStatus' => nil }
-      while status['taskStatus'] != "COMPLETED" do
+      while status['taskStatus'] != 'COMPLETED'
         status = api.get_task_by_id(task_id)
         Puppet.debug "CVP task [#{task_id}] returned"\
                      " status: #{status['taskStatus']}"
@@ -116,7 +118,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
                          configlet['key'],
                          resource[:content])
     tasks = api.get_pending_tasks_by_device(resource[:name])
-    task_ids = tasks.map{ |task| task['workOrderId']} || []
+    task_ids = tasks.map { |task| task['workOrderId'] } || []
     handle_tasks(task_ids)
   end
 
@@ -129,8 +131,8 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     configlet = api.get_configlet_by_name(resource[:name])
     apply = api.apply_configlets_to_device('Puppet Assign Host Port Configlet',
                                            net_elem,
-                                           [{'name' => configlet['name'],
-                                             'key' => configlet['key']}])
+                                           [{ 'name' => configlet['name'],
+                                              'key' => configlet['key'] }])
     handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds')
   end
 
@@ -143,8 +145,8 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     configlet = api.get_configlet_by_name(resource[:name])
     apply = api.remove_configlets_from_device('Puppet Remove Host Port Configlet',
                                               net_elem,
-                                              [{'name' => configlet['name'],
-                                                'key' => configlet['key']}])
+                                              [{ 'name' => configlet['name'],
+                                                 'key' => configlet['key'] }])
     handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds')
   end
 
@@ -180,8 +182,8 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     if configlet['netElementCount'] > 0
       # Get the network elements
       devices = api.get_devices_by_configlet_name(resource[:name])
-      #require 'pry'
-      #binding.pry
+      # require 'pry'
+      # binding.pry
       devices['data'].each do |dev|
         remove_configlet_from_element(dev['hostName'])
       end
