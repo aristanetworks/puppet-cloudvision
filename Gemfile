@@ -25,36 +25,22 @@ group :development, :test do
   gem 'guard-rspec'
   gem 'guard-rubocop'
   gem 'guard-shell'
-  #gem 'kitchen-vagrant'
   gem 'metadata-json-lint'
   gem 'pry', require: false
   gem 'pry-doc', require: false
-  #gem 'puppet', puppetversion
   gem 'puppet', *location_for(puppetversion)
   gem 'puppet-lint', '>= 1.0.0'
+  gem 'puppet-strings'
   gem 'puppetlabs_spec_helper', '>= 1.0.0'
   gem 'rake', require: false
-  #gem 'redcarpet', '~> 3.1.2'
   gem 'rspec'
   gem 'rspec-mocks'
   gem 'rspec-puppet'
   gem 'simplecov',               require: false
   gem 'simplecov-json',          require: false
   gem 'simplecov-rcov',          require: false
-  #gem 'test-kitchen'
   gem 'yard'
 end
-
-#ENV['GEM_PUPPET_VERSION'] ||= ENV['PUPPET_GEM_VERSION']
-#puppetversion = ENV['GEM_PUPPET_VERSION']
-#if puppetversion
-#  gem 'puppet', *location_for(puppetversion)
-#else
-#  # Rubocop thinks these are duplicates.
-#  # rubocop:disable Bundler/DuplicatedGem
-#  gem 'puppet', require: false
-#  # rubocop:enable Bundler/DuplicatedGem
-#end
 
 cvpracversion = ENV['GEM_CVPRAC_VERSION']
 if cvpracversion
