@@ -1,5 +1,6 @@
 # encoding: utf-8
-require 'rbeapi'
+# require 'rbeapi'
+require 'puppetlabs_spec_helper/module_spec_helper'
 require 'simplecov'
 require 'simplecov-json'
 require 'simplecov-rcov'

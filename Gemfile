@@ -30,6 +30,7 @@ group :development, :test do
   gem 'pry-doc', require: false
   gem 'puppet', *location_for(puppetversion)
   gem 'puppet-lint', '>= 1.0.0'
+  gem 'puppet-retrospec'
   gem 'puppet-strings'
   gem 'puppetlabs_spec_helper', '>= 1.0.0'
   gem 'rake', require: false
