@@ -21,6 +21,8 @@ node('puppet') {
                 gem install bundler --no-ri --no-rdoc
                 which ruby
                 ruby --version
+                export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
+                bundle install --path=.bundle/gems
             """
         }
 
