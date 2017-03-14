@@ -2,10 +2,10 @@ source ENV['GEM_SOURCE'] || 'https://rubygems.org'
 
 ENV['GEM_PUPPET_VERSION'] ||= ENV['PUPPET_GEM_VERSION']
 ENV['PUPPET_VERSION'] ||= ENV['GEM_PUPPET_VERSION']
-puppetversion = ENV.key?('PUPPET_VERSION') ? ENV['PUPPET_VERSION'] : ['>= 3.3']
+puppetversion = ENV.key?('PUPPET_VERSION') ? ENV['PUPPET_VERSION'] : ['>= 4.0']
 
 def location_for(place, fake_version = nil)
-  mdata = /^(git[:@][^#]*)#(.*)/.match(place)
+  mdata = /^(https[:@][^#]*)#(.*)/.match(place)
   if mdata
     hsh = { git: mdata[1], branch: mdata[2], require: false }
     return [fake_version, hsh].compact
