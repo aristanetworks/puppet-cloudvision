@@ -57,6 +57,7 @@ node('puppet') {
                 rvm use 2.3.3@cvprac-rb
                 export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
                 bundle exec rake ci_spec || true
+                bundle exec puppet --version
             """
 
             step([$class: 'JUnitResultArchiver', testResults: 'results/*.xml'])
