@@ -21,7 +21,6 @@ node('puppet') {
                 gem install bundler --no-ri --no-rdoc
                 which ruby
                 ruby --version
-                bin/setup
             """
         }
 
