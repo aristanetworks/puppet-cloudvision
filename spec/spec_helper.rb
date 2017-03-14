@@ -1,5 +1,4 @@
 # encoding: utf-8
-# require 'rbeapi'
 require 'puppetlabs_spec_helper/module_spec_helper'
 require 'simplecov'
 require 'simplecov-json'
@@ -25,4 +24,5 @@ RSpec.configure do |config|
   config.mock_with :rspec do |rspec_config|
     rspec_config.syntax = :expect
   end
+  config.hiera_config = File.expand_path(File.join(__FILE__, '../fixtures/hiera.yaml'))
 end
