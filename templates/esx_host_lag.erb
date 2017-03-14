@@ -13,4 +13,5 @@ interface Port-Channel<%= @portnum %>
    switchport trunk allowed vlan 10-11,400-599
    switchport mode trunk
    mlag <%= @portnum %>
+   spanning-tree portfast
 !
