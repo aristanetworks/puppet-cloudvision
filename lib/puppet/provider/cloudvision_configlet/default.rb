@@ -124,8 +124,10 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
 
   def add_configlet_to_element(dev)
     net_elem = api.get_device_by_name(dev)
-    Puppet.debug "CVP device #{dev} has outstanding tasks before configlet"\
-                 ' is added.' unless net_elem['taskIdList'].length.zero?
+    unless net_elem['taskIdList'].length.zero?
+      Puppet.debug "CVP device #{dev} has outstanding tasks before configlet"\
+                   ' is added.'
+    end
 
     # Add configlet to nodes
     configlet = api.get_configlet_by_name(resource[:name])
@@ -138,8 +140,10 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
 
   def remove_configlet_from_element(dev)
     net_elem = api.get_device_by_name(dev)
-    Puppet.debug "CVP device #{dev} has outstanding tasks before configlet is"\
-                 ' added.' unless net_elem['taskIdList'].length.zero?
+    unless net_elem['taskIdList'].length.zero?
+      Puppet.debug "CVP device #{dev} has outstanding tasks before configlet"\
+                   ' is added.'
+    end
 
     # Add configlet to nodes
     configlet = api.get_configlet_by_name(resource[:name])
