@@ -62,10 +62,10 @@ module PuppetX
       ##
       # Load a cloudvision.yaml, to get the CVP nodes and credentials to use.
       #
-      # @param [Hash] :opts The set of options configured on the resource
+      # @param [Hash] opts The set of options configured on the resource
       # @option opts [String] :filename Full path to a YAML config file
       #
-      # @returns [Hash] Ex: {"nodes"=>["192.0.2.101", "192.0.2.102",
+      # @return [Hash] Ex: {"nodes"=>["192.0.2.101", "192.0.2.102",
       #   "192.0.2.102"] "username"=>"cvpadmin", "password"=>"arista123"}
       def load_config(**opts)
         search_path = ['/mnt/flash/cloudvision.yaml']
@@ -88,10 +88,10 @@ module PuppetX
       ##
       # Lazily load the cloudvision.yaml
       #
-      # @param [Hash] :opts The set of options configured on the resource
+      # @param [Hash] opts The set of options configured on the resource
       # @option opts [String] :filename Full path to a YAML config file
       #
-      # @returns [Hash] Ex: {"nodes"=>["192.0.2.101", "192.0.2.102",
+      # @return [Hash] Ex: {"nodes"=>["192.0.2.101", "192.0.2.102",
       #   "192.0.2.102"] "username"=>"cvpadmin", "password"=>"arista123"}
       def cvp_config(**opts)
         @config ||= load_config(opts)
@@ -105,9 +105,9 @@ module PuppetX
       #
       # @api private
       #
-      # @param [Hash] :opts The set of options configured on the resource
+      # @param [Hash] opts The set of options configured on the resource
       #
-      # @param [Array] :req The set of required option keys
+      # @param [Array] req The set of required option keys
       def validate(req, opts = {})
         missing = req.reject { |k| opts[k] }
         errors = !missing.empty?
@@ -124,7 +124,7 @@ module PuppetX
       #
       # @api private
       #
-      # @param [Hash] :property_flush The providers property_flush hash.
+      # @param [Hash] property_flush The providers property_flush hash.
       def remove_puppet_keys(property_flush)
         property_flush.delete(:provider)
         property_flush.delete(:ensure)
@@ -141,8 +141,8 @@ module PuppetX
       #
       # @api private
       #
-      # @param [Hash] :property_flush The providers property_flush hash.
-      # @param [Hash] :key The key in the hash whose value is a boolean.
+      # @param [Hash] property_flush The providers property_flush hash.
+      # @param [Hash] key The key in the hash whose value is a boolean.
       def map_boolean(property_flush, key)
         return unless property_flush.key?(key)
         property_flush[key] = (property_flush[key] == :true ? true : false)
@@ -156,8 +156,8 @@ module PuppetX
       #
       # @api private
       #
-      # @param [Hash] :hash The hash to have the keys converted to symbols.
-      # @param [String] :to If set to 'symbols' then the keys are converted
+      # @param [Hash] hash The hash to have the keys converted to symbols.
+      # @param [String] to If set to 'symbols' then the keys are converted
       #   symbols. If set to 'strings' then the keys are converted to strings.
       #   For any other value then the original key is used.
       #
