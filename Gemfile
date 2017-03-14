@@ -3,7 +3,7 @@ source ENV['GEM_SOURCE'] || 'https://rubygems.org'
 ENV['GEM_PUPPET_VERSION'] ||= ENV['PUPPET_GEM_VERSION']
 ENV['PUPPET_VERSION'] ||= ENV['GEM_PUPPET_VERSION']
 puppetversion = ENV.key?('PUPPET_VERSION') ? ENV['PUPPET_VERSION'] : '>= 4.0'
-puts "puppet ver: #{puppetversion}"
+cvpracversion = ENV.key?('GEM_CVPRAC_VERSION') ? ENV['GEM_CVPRAC_VERSION'] : '>= 0.1.0'
 
 def location_for(place, fake_version = nil)
   mdata = /^(https[:@][^#]*)#(.*)/.match(place)
@@ -44,7 +44,6 @@ group :development, :test do
   gem 'yard'
 end
 
-cvpracversion = ENV['GEM_CVPRAC_VERSION']
 if cvpracversion
   gem 'cvprac', *location_for(cvpracversion)
 else
