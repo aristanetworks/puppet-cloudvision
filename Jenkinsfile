@@ -33,6 +33,7 @@ node('puppet') {
                     #!/bin/bash -l
                     source /usr/local/rvm/scripts/rvm
                     rvm use 2.3.3@cvprac-rb
+                    export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
                     bundle exec rake rubocop || true
                     # validate includes syntax...
                     bundle exec rake validate || true
@@ -54,6 +55,7 @@ node('puppet') {
                 #!/bin/bash -l
                 source /usr/local/rvm/scripts/rvm
                 rvm use 2.3.3@cvprac-rb
+                export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
                 bundle exec rake ci_spec || true
             """
 
@@ -68,6 +70,7 @@ node('puppet') {
                     #!/bin/bash -l
                     source /usr/local/rvm/scripts/rvm
                     rvm use 2.3.3@cvprac-rb
+                    export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
                     bundle exec rake strings:generate || true
                 """
             // }
