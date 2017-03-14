@@ -28,6 +28,7 @@
 
 # Work around due to autoloader issues: https://projects.puppetlabs.com/issues/4248
 require File.dirname(__FILE__) + '/../../puppet_x/cloudvision/utils/helpers'
+require 'puppet/parameter/boolean'
 
 Puppet::Type.newtype(:cloudvision_configlet) do
   @doc = <<-EOS
