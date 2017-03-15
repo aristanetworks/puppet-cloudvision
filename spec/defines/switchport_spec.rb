@@ -1,6 +1,5 @@
 require 'spec_helper'
 require 'shared_contexts'
-#require 'hiera'
 
 describe 'cloudvision::switchport' do
   # by default the hiera integration uses hiera data from the shared_contexts.rb file
@@ -12,22 +11,10 @@ describe 'cloudvision::switchport' do
 
   let(:title) { 'server-name' }
 
-  #let(:hiera_config) { 'spec/fixtures/hiera.yaml' }
-  #hiera = Hiera.new({ :config => 'spec/fixtures/hiera.yaml' })
-
   # Set Hiera data
-  #let(:hiera_data) do
-  #  {
-  #    :'cloudvision::switchport::auto_run' => true,
-  #    :'cloudvision::switchport::host_port_range' => {
-  #      'min' => 4,
-  #      'max' => 60 } ,
-  #    :'cloudvision::rack_switch_map' => {
-  #      'A1' => 'dc01-A1-tor.example.com',
-  #      'A2' => 'dc01-a2-tor.example.com',
-  #    }
-  #  }
-  #end
+  let(:hiera_data) do
+    {}
+  end
 
   # below is the facts hash that gives you the ability to mock
   # facts on a per describe/context block.  If you use a fact in your
