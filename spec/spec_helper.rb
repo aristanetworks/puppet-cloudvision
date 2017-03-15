@@ -24,4 +24,9 @@ RSpec.configure do |config|
   config.mock_with :rspec do |rspec_config|
     rspec_config.syntax = :expect
   end
+
+  # Coverage generation
+  config.after(:suite) do
+    RSpec::Puppet::Coverage.report!
+  end
 end
