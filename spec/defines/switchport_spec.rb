@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'shared_contexts'
+#require 'hiera'
 
 describe 'cloudvision::switchport' do
   # by default the hiera integration uses hiera data from the shared_contexts.rb file
@@ -10,6 +11,23 @@ describe 'cloudvision::switchport' do
   # include_context :hiera
 
   let(:title) { 'server-name' }
+
+  #let(:hiera_config) { 'spec/fixtures/hiera.yaml' }
+  #hiera = Hiera.new({ :config => 'spec/fixtures/hiera.yaml' })
+
+  # Set Hiera data
+  #let(:hiera_data) do
+  #  {
+  #    :'cloudvision::switchport::auto_run' => true,
+  #    :'cloudvision::switchport::host_port_range' => {
+  #      'min' => 4,
+  #      'max' => 60 } ,
+  #    :'cloudvision::rack_switch_map' => {
+  #      'A1' => 'dc01-A1-tor.example.com',
+  #      'A2' => 'dc01-a2-tor.example.com',
+  #    }
+  #  }
+  #end
 
   # below is the facts hash that gives you the ability to mock
   # facts on a per describe/context block.  If you use a fact in your
@@ -26,9 +44,15 @@ describe 'cloudvision::switchport' do
       :rack => 'A2',
       :port => '23',
       :template => 'cloudvision/single_attached_vlan.erb',
-      #:auto_run => [],
+      #:auto_run => true,
       #:variables => {},
-
+      :host_port_range => {
+        'min' => 4,
+        'max' => 60
+      },
+      :rack_switch_map => {
+        'A2' => 'dc01-a2-tor.example.com'
+      }
     }
   end
   # add these two lines in a single test block to enable puppet and hiera debug mode
@@ -36,7 +60,7 @@ describe 'cloudvision::switchport' do
   # Puppet::Util::Log.newdestination(:console)
 
   let(:content) do
-    # squiggly heredoc isn't supported till Ruby 2.3
+    # squiggly heredoc isn't supported till Ruby 2.3, Puppet 5?
     <<-HEREDOC
 interface Ethernet23
    description Host server-name managed by puppet template cloudvision/single_attached_vlan.erb
@@ -51,7 +75,7 @@ interface Ethernet23
       .with({
           'content' => content,
           'containers' => ['dc01-a2-tor.example.com'],
-          'auto_run' => true,
+          'auto_run' => false,
           })
   end
 end
