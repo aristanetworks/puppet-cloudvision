@@ -56,6 +56,7 @@ node('puppet') {
                 source /usr/local/rvm/scripts/rvm
                 rvm use 2.3.3@cvprac-rb
                 export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
+                bundle exec rake spec_clean || true
                 bundle exec rake ci_spec || true
                 bundle exec puppet --version
             """
