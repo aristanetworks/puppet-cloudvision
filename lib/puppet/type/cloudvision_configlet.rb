@@ -97,11 +97,7 @@ Puppet::Type.newtype(:cloudvision_configlet) do
       generated when an assigned configlet is modified? (Default: :no)
     EOS
 
-    # newvalues(:true, :false, :yes, :no)
-
-    # munge do |value|
-    #  @resource.munge_boolean(value)
-    # end
+    defaultto false
   end
 
   newproperty(:content) do
