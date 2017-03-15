@@ -60,7 +60,7 @@ git diff-index --check --cached $against --
 err=0
 msg=''
 
-divert(){
+run(){
     tmp=$(mktemp -t cv-precommit)
     echo -n "Running ${@:3:2}: "
     "$@" >$tmp 2>&1
@@ -79,90 +79,12 @@ divert(){
 }
 
 START_TIME=$SECONDS
-divert bundle exec rubocop
-
-#set -x
-#echo -n "Running rubocop: "
-#OUT=`bundle exec rubocop`
-#if [ $? != 0 ]; then
-#    let "err = $err + $?"
-#    msg="${msg}\n\tRubocop failed"
-#    echo -e "${RED}FAILED${NC}"
-#    echo $OUT
-#else
-#    echo -e "${GREEN}PASSED${NC}"
-#fi
-
-#echo -n "Running validate: "
-#OUT=`bundle exec rake validate`
-#if [ $? != 0 ]; then
-#    let "err = $err + $?"
-#    msg="${msg}\n\tvalidate failed"
-#    echo -e "${RED}FAILED${NC}"
-#    echo $OUT
-#else
-#    echo -e "${GREEN}PASSED${NC}"
-#fi
-
-divert bundle exec rake validate 2>&1
-
-#echo -n "Running release_checks: "
-##OUT=`bundle exec rake release_checks`
-#OUT=`bundle exec rake validate 2>&1`
-#if [ $? != 0 ]; then
-#    let "err = $err + $?"
-#    msg="${msg}\n\trelease_checks failed"
-#    echo -e "${RED}FAILED${NC}"
-#    echo $OUT
-#else
-#    echo -e "${GREEN}PASSED${NC}"
-#fi
-
-divert bundle exec rake metadata_lint
-
-#echo -n "Running metadata_lint: "
-#OUT=`bundle exec rake metadata_lint`
-#if [ $? != 0 ]; then
-#    let "err = $err + $?"
-#    msg="${msg}\n\tmetadata_lint failed"
-#    echo -e "${RED}FAILED${NC}"
-#    echo $OUT
-#else
-#    echo -e "${GREEN}PASSED${NC}"
-#fi
-
-divert bundle exec rake build
-
-#echo -n "Running build: "
-#OUT=`bundle exec rake build`
-#if [ $? != 0 ]; then
-#    let "err = $err + $?"
-#    msg="${msg}\n\tbuild failed"
-#    echo -e "${RED}FAILED${NC}"
-#    echo $OUT
-#else
-#    echo -e "${GREEN}PASSED${NC}"
-#fi
-
-#divert(){
-#    "$@" >&3 2>&3 ||
-#    eval "cat <&3
-#          return $?"
-#}   3<<"" 3<>/dev/fd/3
-
-
-divert bundle exec rake spec
-divert bundle exec rake strings:generate
-
-#echo -n "Running puppet strings: "
-#if [ $? != 0 ]; then
-#    let "err = $err + $?"
-#    msg="${msg}\n\tpuppet strings failed"
-#    echo -e "${RED}FAILED${NC}"
-#    echo $OUT
-#else
-#    echo -e "${GREEN}PASSED${NC}"
-#fi
+run bundle exec rubocop
+run bundle exec rake validate 2>&1
+run bundle exec rake metadata_lint
+run bundle exec rake build
+run bundle exec rake spec
+run bundle exec rake strings:generate
 
 DURATION=$(($SECONDS - $START_TIME))
 echo "pre-commit checks took ${DURATION} seconds."
