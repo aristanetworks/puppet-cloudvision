@@ -24,5 +24,4 @@ RSpec.configure do |config|
   config.mock_with :rspec do |rspec_config|
     rspec_config.syntax = :expect
   end
-  config.hiera_config = File.expand_path(File.join(__FILE__, '../fixtures/hiera.yaml'))
 end
