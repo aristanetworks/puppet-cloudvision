@@ -48,4 +48,6 @@ Metrics/MethodLength:
   Max: 15
 
 Metrics/BlockLength:
-  Max: 165
+  Max: 140
+  Exclude:
+    - spec/unit/puppet/provider/**/*
