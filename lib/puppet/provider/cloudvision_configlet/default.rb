@@ -112,16 +112,6 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     end
   end
 
-  def content=(_value)
-    configlet = api.get_configlet_by_name(resource[:name])
-    api.update_configlet(resource[:name],
-                         configlet['key'],
-                         resource[:content])
-    tasks = api.get_pending_tasks_by_device(resource[:name])
-    task_ids = tasks.map { |task| task['workOrderId'] } || []
-    handle_tasks(task_ids)
-  end
-
   def add_configlet_to_element(dev)
     net_elem = api.get_device_by_name(dev)
     unless net_elem['taskIdList'].length.zero?
@@ -154,21 +144,6 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds')
   end
 
-  def containers=(value)
-    removes = value - @resource[:containers]
-    adds = @resource[:containers] - value
-
-    removes.each do |dev|
-      remove_configlet_from_element(dev)
-    end
-
-    adds.each do |dev|
-      add_configlet_to_element(dev)
-    end
-
-    @property_hash[:containers] = value
-  end
-
   def create
     cfglt_id = api.add_configlet(resource[:name],
                                  resource[:content])
@@ -186,13 +161,37 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
                        ensure: :present }
   end
 
+  def containers=(value)
+    removes = value - @resource[:containers]
+    adds = @resource[:containers] - value
+
+    removes.each do |dev|
+      remove_configlet_from_element(dev)
+    end
+
+    adds.each do |dev|
+      add_configlet_to_element(dev)
+    end
+
+    @property_hash[:containers] = value
+  end
+
+  def content=(value)
+    configlet = api.get_configlet_by_name(resource[:name])
+    api.update_configlet(resource[:name],
+                         configlet['key'],
+                         value)
+    tasks = api.get_pending_tasks_by_device(resource[:name])
+    task_ids = tasks.map { |task| task['workOrderId'] } || []
+    handle_tasks(task_ids)
+    @property_hash[:content] = value
+  end
+
   def destroy
     configlet = api.get_configlet_by_name(resource[:name])
     if configlet['netElementCount'] > 0
       # Get the network elements
       devices = api.get_devices_by_configlet_name(resource[:name])
-      # require 'pry'
-      # binding.pry
       devices['data'].each do |dev|
         remove_configlet_from_element(dev['hostName'])
       end
@@ -202,8 +201,6 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     Puppet.debug "CVP task [#{resource[:name]}] was deleted."\
                  "  Auto_run set to #{auto_run}"
     @property_hash = { name: resource[:name],
-                       auto_run: resource[:auto_run],
-                       # containers: resource[:containers],
                        content: resource[:content],
                        ensure: :absent }
   end
