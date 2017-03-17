@@ -70,11 +70,6 @@ RSpec.shared_examples 'boolean value' do
     it "accepts #{val.inspect}" do
       type[attribute] = val
     end
-
-    it "munges #{val.inspect} to #{val.to_s.intern.inspect}" do
-      type[attribute] = val
-      expect(type[attribute]).to eq(val.to_s.intern)
-    end
   end
 
   ['yes', :yes, 'on', :on].each do |val|
@@ -258,6 +253,12 @@ RSpec.shared_examples 'array of strings value' do
       type[attribute] = val
       expect(type[attribute]).to eq([val])
     end
+  end
+
+  valu = ['foo', 'bar', 'foo bar baz']
+  it "accepts #{valu.inspect}" do
+    type[attribute] = valu
+    expect(type[attribute]).to eq(valu)
   end
 
   [-1, 4096, 8192, { foo: 1 }, true, false, nil].each do |val|
