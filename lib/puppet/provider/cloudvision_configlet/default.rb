@@ -32,7 +32,7 @@ require 'pathname'
 module_lib = Pathname.new(__FILE__).parent.parent.parent.parent
 require File.join module_lib, 'puppet_x/cloudvision/provider'
 
-Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
+Puppet::Type.type(:cloudvision_configlet).provide(:default) do
   desc 'Manage configlet content on Arista CloudVision.  Requires cvprac rubygem.'
 
   confine feature: :cvprac
@@ -154,9 +154,9 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds')
   end
 
-  def containers=(_value)
-    removes = @property_hash[:containers] - @resource[:containers]
-    adds = @resource[:containers] - @property_hash[:containers]
+  def containers=(value)
+    removes = value - @resource[:containers]
+    adds = @resource[:containers] - value
 
     removes.each do |dev|
       remove_configlet_from_element(dev)
@@ -165,6 +165,8 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     adds.each do |dev|
       add_configlet_to_element(dev)
     end
+
+    @property_hash[:containers] = value
   end
 
   def create
@@ -178,7 +180,10 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     end
 
     @property_hash = { name: resource[:name],
-                       content: resource[:content] }
+                       auto_run: resource[:auto_run],
+                       containers: resource[:containers],
+                       content: resource[:content],
+                       ensure: :present }
   end
 
   def destroy
@@ -196,6 +201,10 @@ Puppet::Type.type(:cloudvision_configlet).provide(:cloudvision) do
     raise "Failed to delete configlet #{resource[:name]}" if status != 'success'
     Puppet.debug "CVP task [#{resource[:name]}] was deleted."\
                  "  Auto_run set to #{auto_run}"
-    @property_hash = { name: resource[:name], ensure: :absent }
+    @property_hash = { name: resource[:name],
+                       auto_run: resource[:auto_run],
+                       # containers: resource[:containers],
+                       content: resource[:content],
+                       ensure: :absent }
   end
 end
