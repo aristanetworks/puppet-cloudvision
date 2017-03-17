@@ -22,13 +22,9 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
       :provider => described_class.name
     }
   end
-  # let(:resource) { subject.new(properties) }
   let(:resource) { Puppet::Type.type(:cloudvision_configlet).new(properties) }
   let(:provider) { resource.provider }
 
-  # let(:CvpClient) { double('CvpClient') }
-  # let(:CvpApi) { double('CvpApi') }
-  # let(:cvp) { double('cvp') }
   let(:api) { double('api') }
   let(:configlets) { double('configlets') }
   let(:devices) { double('devices') }
@@ -55,8 +51,6 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
   end
 
   it 'should return an array of instances' do
-    # binding.pry
-    # expect(subject.instances).to be_instance_of(Array)
     expect(described_class.instances).to be_instance_of(Array)
   end
 
@@ -88,9 +82,6 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
     end
 
     it 'should prefetch resources' do
-      # binding.pry
-      # expect(subject.instances).to be_instance_of(Array)
-
       expect(described_class.instances).to be_instance_of(Array)
     end
   end
@@ -128,57 +119,50 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
       allow(provider).to receive(:add_configlet_to_element).and_return(nil)
     end
 
+    let(:tasks_by_device) do
+      [{ 'workOrderEscalation' => nil,
+         'workFlowDetailsId' => nil,
+         'createdBy' => 'cvpadmin',
+         'executedOnInLongFormat' => 0,
+         'executedBy' => nil,
+         'workOrderDetails' =>
+           { 'workOrderDetailsId' => nil,
+             'netElementHostName' => 'veos-l-11.aristanetworks.com',
+             'netElementId' => '00:50:56:60:2c:a8',
+             'ipAddress' => '192.0.2.200',
+             'workOrderId' => nil,
+             'factoryId' => 1,
+             'serialNumber' => '',
+             'id' => 13 },
+         'createdOnInLongFormat' => 1_488_799_943_226,
+         'workOrderState' => 'ACTIVE',
+         'workOrderId' => '18',
+         'templateId' => 'ztp',
+         'currentTaskType' => 'User Task',
+         'currentTaskName' => 'Execute',
+         'workOrderUserDefinedStatus' => 'Pending',
+         'taskStatus' => 'ACTIVE',
+         'factoryId' => 1,
+         'data' =>
+           { 'currentparentContainerId' => 'container_76_24208204830466',
+             'WORKFLOW_ACTION' => 'Configlet Push',
+             'VIEW' => 'CONFIG',
+             'newparentContainerId' => 'container_76_24208204830466',
+             'NETELEMENT_ID' => '00:50:56:60:2c:a8',
+             'ignoreConfigletList' => [],
+             'IS_CONFIG_PUSH_NEEDED' => 'yes' },
+         'description' => 'Configlet Assign: to Device 00:50:56:60:2c:a8',
+         'note' => nil,
+         'name' => nil,
+         'id' => 7 }]
+    end
+
     describe '#create' do
-      let(:tasks_by_device) do
-        [{ 'workOrderEscalation' => nil,
-           'workFlowDetailsId' => nil,
-           'createdBy' => 'cvpadmin',
-           'executedOnInLongFormat' => 0,
-           'executedBy' => nil,
-           'workOrderDetails' =>
-     { 'workOrderDetailsId' => nil,
-       'netElementHostName' => 'veos-l-11.aristanetworks.com',
-       'netElementId' => '00:50:56:60:2c:a8',
-       'ipAddress' => '192.0.2.200',
-       'workOrderId' => nil,
-       'factoryId' => 1,
-       'serialNumber' => '',
-       'id' => 13 },
-           'createdOnInLongFormat' => 1_488_799_943_226,
-           'workOrderState' => 'ACTIVE',
-           'workOrderId' => '18',
-           'templateId' => 'ztp',
-           'currentTaskType' => 'User Task',
-           'currentTaskName' => 'Execute',
-           'workOrderUserDefinedStatus' => 'Pending',
-           'taskStatus' => 'ACTIVE',
-           'factoryId' => 1,
-           'data' =>
-     { 'currentparentContainerId' => 'container_76_24208204830466',
-       'WORKFLOW_ACTION' => 'Configlet Push',
-       'VIEW' => 'CONFIG',
-       'newparentContainerId' => 'container_76_24208204830466',
-       'NETELEMENT_ID' => '00:50:56:60:2c:a8',
-       'ignoreConfigletList' => [],
-       'IS_CONFIG_PUSH_NEEDED' => 'yes' },
-           'description' => 'Configlet Assign: to Device 00:50:56:60:2c:a8',
-           'note' => nil,
-           'name' => nil,
-           'id' => 7 }]
-      end
       let(:content) { "Interface Ethernet4\n   shutdown\nend" }
       it 'sets ensure on the resource' do
-        # allow(provider.api).to receive(:get_pending_tasks_by_device).and_return(tasks_by_device)
-        # allow(described_class).to receive(:add_configlet_to_element).and_return(nil)
-        # allow(described_class).to receive(:handle_tasks).and_return(nil)
-        # allow(provider).to receive(:get_device_by_name).and_return({})
-        # binding.pry
         expect(provider.api).to receive(:add_configlet)
         expect(provider).to receive(:add_configlet_to_element)
         provider.create
-        # provider.content = "Interface Ethernet4\n   shutdown\nend"
-        # provider.containers = ['dev1']
-        # provider.flush
         expect(provider.ensure).to eq(:present)
         expect(provider.content).to eq(@content)
       end
@@ -190,26 +174,81 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
         allow(provider).to receive(:add_configlet_to_element).and_return(nil)
 
         provider.create
-        provider.containers = %w(one three)
-        # provider.flush
-        expect(provider.containers).to eq(%w(one three))
+        provider.containers = %w(node-1 node-3)
+        expect(provider.containers).to eq(%w(node-1 node-3))
+      end
+    end
+
+    describe '#content=(value)' do
+      let(:content) { "Interface Ethernet4\n   shutdown\nend" }
+      it 'sets content on the resource' do
+        allow(provider.api).to receive(:get_pending_tasks_by_device).and_return(tasks_by_device)
+        allow(provider.api).to receive(:get_configlet_by_name).and_return(configlets['data'][0])
+        allow(described_class).to receive(:handle_tasks).and_return(nil)
+
+        expect(provider.api).to receive(:get_configlet_by_name)
+        expect(provider.api).to receive(:update_configlet)
+        provider.create
+        provider.content = content
+        expect(provider.ensure).to eq(:present)
+        expect(provider.content).to eq(content)
       end
     end
 
     describe '#destroy' do
       it 'sets ensure to :absent' do
-        # resource[:ensure] = :absent
-        # expect(api).to receive(:delete)
-        # provider.destroy
-        # provider.flush
-        # expect(provider.ensure).to eq(:absent)
+        allow(provider.api).to receive(:get_configlet_by_name).and_return(configlets['data'][0])
+        allow(provider.api).to receive(:delete_configlet).and_return('success')
+
+        resource[:ensure] = :absent
+        expect(provider.api).to receive(:get_configlet_by_name)
+        expect(provider.api).to receive(:delete_configlet)
+        provider.destroy
+        expect(provider.ensure).to eq(:absent)
       end
-    end
 
-    describe '#content' do
-    end
+      let(:configlet) do
+        { 'isDefault' => 'no',
+          'containerCount' => 2,
+          'netElementCount' => 1,
+          'isAutoBuilder' => 'false',
+          'reconciled' => false,
+          'dateTimeInLongFormat' => 1_469_067_229_602,
+          'factoryId' => 1,
+          'config' =>
+          "!username admin privilege 15 role network-admin secret 0 admin\n!username cvpadmin privilege 15 role network-admin secret 0 arista123\nusername admin privilege 15 role network-admin secret 5 $1$7IJPvFto$.3IzcPDr5MJiBID8iCEFb1 \nusername cvpadmin privilege 15 role network-admin secret 5 $1$e8zc.bhO$G1YLdeQGXLBS1J8T.oeJT/ \n! \nmanagement api http-commands\nno shutdown\n",
+          'user' => 'cvpadmin',
+          'note' => nil,
+          'name' => 'cvp_base',
+          'key' => 'configlet_17_22451036385055',
+          'id' => 3,
+          'type' => 'Static' }
+      end
 
-    describe '#content' do
+      let(:devices) do
+        { 'total' => 1,
+          'data' =>
+          [{ 'ipAddress' => '192.0.2.200',
+             'appliedBy' => 'cvpadmin',
+             'containerName' => 'Spines',
+             'totalDevicesCount' => 0,
+             'appliedDate' => 1_469_068_986_862,
+             'hostName' => 'veos-l-11.aristanetworks.com' }] }
+      end
+
+      it 'removes configlet references on nodes' do
+        allow(provider.api).to receive(:get_configlet_by_name).and_return(configlet)
+        allow(provider.api).to receive(:get_devices_by_configlet_name).and_return(devices)
+        allow(provider).to receive(:remove_configlet_from_element)
+        allow(provider.api).to receive(:delete_configlet).and_return('success')
+
+        resource[:ensure] = :absent
+        expect(provider.api).to receive(:get_configlet_by_name)
+        expect(provider).to receive(:remove_configlet_from_element)
+        expect(provider.api).to receive(:delete_configlet)
+        provider.destroy
+        expect(provider.ensure).to eq(:absent)
+      end
     end
   end
 
