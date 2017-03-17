@@ -90,15 +90,9 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     @property_flush = {}
   end
 
-  # def auto_run=(value)
-  #  @property_flush[:auto_run] = value
-  # end
-
   def handle_tasks(task_ids)
     task_ids = Array(task_ids) # Ensure array even if given a single string
-    Puppet.debug "CVP handle_tasks auto_run: #{resource.auto_run?}"\
-                 ", task_ids: #{task_ids}"
-    return unless resource.auto_run?
+    Puppet.debug "CVP handle_tasks(ids): #{task_ids}"
     task_ids.each do |task_id|
       result = api.execute_task(task_id)
       Puppet.debug "CVP task [#{task_id}] started with info: #{result['data']}"
@@ -112,7 +106,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     end
   end
 
-  def add_configlet_to_element(dev)
+  def add_configlet_to_element(dev, auto_run = false)
     net_elem = api.get_device_by_name(dev)
     unless net_elem['taskIdList'].length.zero?
       Puppet.debug "CVP device #{dev} has outstanding tasks before configlet"\
@@ -125,10 +119,10 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
                                            net_elem,
                                            [{ 'name' => configlet['name'],
                                               'key' => configlet['key'] }])
-    handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds')
+    handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds') && auto_run
   end
 
-  def remove_configlet_from_element(dev)
+  def remove_configlet_from_element(dev, auto_run = false)
     net_elem = api.get_device_by_name(dev)
     unless net_elem['taskIdList'].length.zero?
       Puppet.debug "CVP device #{dev} has outstanding tasks before configlet"\
@@ -141,7 +135,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
                                               net_elem,
                                               [{ 'name' => configlet['name'],
                                                  'key' => configlet['key'] }])
-    handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds')
+    handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds') && auto_run
   end
 
   def create
@@ -183,7 +177,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
                          value)
     tasks = api.get_pending_tasks_by_device(resource[:name])
     task_ids = tasks.map { |task| task['workOrderId'] } || []
-    handle_tasks(task_ids)
+    handle_tasks(task_ids) if resource.auto_run?
     @property_hash[:content] = value
   end
 

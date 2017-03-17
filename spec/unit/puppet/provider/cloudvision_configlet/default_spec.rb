@@ -5,6 +5,7 @@ include FixtureHelpers
 describe Puppet::Type.type('cloudvision_configlet').provider('default') do
   def load_default_settings
     @name = 'api_test_0'
+    @auto_run = false
     @content = "Interface Ethernet4\n   no shutdown\nend"
     @containers = ['dc01-rack3-torA.example.com']
     @ensure = :present
@@ -16,6 +17,7 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
     load_default_settings
     {
       :name => @name,
+      :auto_run => @auto_run,
       :content => @content,
       :containers => @containers,
       :ensure => @ensure,
@@ -111,6 +113,17 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
         expect(described_class.get_configlets).to be_instance_of(Hash)
       end
     end
+
+    describe '#handle_tasks(task_ids)' do
+      it 'executes tasks and waits for completion' do
+        allow(provider.api).to receive(:execute_task).and_return({ 'data' => 'success' })
+        allow(provider.api).to receive(:get_task_by_id).and_return({ 'taskStatus' => 'STARTED' }, { 'taskStatus' => 'INPROGRESS' }, { 'taskStatus' => 'COMPLETED' })
+
+        expect(provider.api).to receive(:execute_task).with('12')
+        expect(provider.api).to receive(:get_task_by_id).exactly(3).times
+        provider.handle_tasks('12')
+      end
+    end
   end
 
   describe 'setter property methods' do
@@ -181,13 +194,30 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
 
     describe '#content=(value)' do
       let(:content) { "Interface Ethernet4\n   shutdown\nend" }
-      it 'sets content on the resource' do
+      it 'with auto_run=false, sets content on the resource' do
         allow(provider.api).to receive(:get_pending_tasks_by_device).and_return(tasks_by_device)
         allow(provider.api).to receive(:get_configlet_by_name).and_return(configlets['data'][0])
-        allow(described_class).to receive(:handle_tasks).and_return(nil)
+        allow(provider).to receive(:handle_tasks).and_return(nil)
 
+        resource[:auto_run] = false
         expect(provider.api).to receive(:get_configlet_by_name)
         expect(provider.api).to receive(:update_configlet)
+        expect(provider).not_to receive(:handle_tasks)
+        provider.create
+        provider.content = content
+        expect(provider.ensure).to eq(:present)
+        expect(provider.content).to eq(content)
+      end
+
+      it 'with auto_run=true, sets content on the resource' do
+        allow(provider.api).to receive(:get_pending_tasks_by_device).and_return(tasks_by_device)
+        allow(provider.api).to receive(:get_configlet_by_name).and_return(configlets['data'][0])
+        allow(provider).to receive(:handle_tasks).and_return(nil)
+
+        resource[:auto_run] = true
+        expect(provider.api).to receive(:get_configlet_by_name)
+        expect(provider.api).to receive(:update_configlet)
+        expect(provider).to receive(:handle_tasks)
         provider.create
         provider.content = content
         expect(provider.ensure).to eq(:present)
