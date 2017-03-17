@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 /**
- * Jenkinsfile for cvprac rubygem
+ * Jenkinsfile for puppet-cloudvision module
  */
 
 node('puppet') {
@@ -17,7 +17,7 @@ node('puppet') {
                 #!/bin/bash -l
                 [[ -s /usr/local/rvm/scripts/rvm ]] && source /usr/local/rvm/scripts/rvm
                 /usr/local/rvm/bin/rvm list
-                rvm use 2.3.3@cvprac-rb --create
+                rvm use 2.3.3@cloudvision --create
                 gem install bundler --no-ri --no-rdoc
                 which ruby
                 ruby --version
@@ -32,7 +32,7 @@ node('puppet') {
                 sh """
                     #!/bin/bash -l
                     source /usr/local/rvm/scripts/rvm
-                    rvm use 2.3.3@cvprac-rb
+                    rvm use 2.3.3@cloudvision
                     export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
                     bundle exec rake rubocop || true
                     # validate includes syntax...
@@ -54,7 +54,7 @@ node('puppet') {
             sh """
                 #!/bin/bash -l
                 source /usr/local/rvm/scripts/rvm
-                rvm use 2.3.3@cvprac-rb
+                rvm use 2.3.3@cloudvision
                 export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
                 bundle exec rake spec_clean || true
                 bundle exec rake ci_spec || true
@@ -71,7 +71,7 @@ node('puppet') {
                 sh """
                     #!/bin/bash -l
                     source /usr/local/rvm/scripts/rvm
-                    rvm use 2.3.3@cvprac-rb
+                    rvm use 2.3.3@cloudvision
                     export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
                     bundle exec rake strings:generate || true
                 """
@@ -120,7 +120,7 @@ node('puppet') {
                       "Started by ${env.BUILD_CAUSE}",
                 from: 'eosplus-dev+jenkins@arista',
                 replyTo: 'eosplus-dev@arista',
-                subject: "cvprac-rb ${env.JOB_NAME} (${env.BUILD_NUMBER}) build successful",
+                subject: "puppet-cloudvision ${env.JOB_NAME} (${env.BUILD_NUMBER}) build successful",
                 to: 'jere@arista.com'
 
         }
@@ -135,7 +135,7 @@ node('puppet') {
                        "is here: ${env.BUILD_URL}\nStarted by ${env.BUILD_CAUSE}" ,
                  from: 'eosplus-dev+jenkins@arista.com',
                  replyTo: 'eosplus-dev+jenkins@arista.com',
-                 subject: "cvprac-rb ${env.JOB_NAME} (${env.BUILD_NUMBER}) build failed",
+                 subject: "puppet-cloudvision ${env.JOB_NAME} (${env.BUILD_NUMBER}) build failed",
                  to: 'jere@arista.com'
 
             throw err
