@@ -42,10 +42,10 @@ Style/BracesAroundHashParameters:
   Enabled: false
 
 Metrics/AbcSize:
-  Max: 30
+  Max: 35
 
 Metrics/MethodLength:
   Max: 15
 
 Metrics/BlockLength:
-  Max: 135
+  Max: 165
