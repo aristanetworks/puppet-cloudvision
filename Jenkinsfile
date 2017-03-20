@@ -96,6 +96,14 @@ node('puppet') {
                   unHealthy: ''
             ])
 
+            step([
+                $class: 'RcovPublisher',
+                reportDir: "coverage/rcov",
+                targets: [
+                    [metric: "CODE_COVERAGE", healthy: 90, unhealthy: 80, unstable: 50]
+                ]
+            ])
+
             // publish html
             // snippet generator doesn't include "target:"
             // https://issues.jenkins-ci.org/browse/JENKINS-29711.
