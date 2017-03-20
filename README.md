@@ -64,11 +64,11 @@ Example `hieradata/dc01/common.yaml`:
 ``` yaml
 ---
 # Reserve the last-4 ports of a 64-port TOR for Spine links
-- cloudvision::switchport::auto_run: true
-- cloudvision::switchport::host_port_range:
+cloudvision::switchport::auto_run: true
+cloudvision::switchport::host_port_range:
   min: ‘1’
   max: ‘60’
-- cloudvision::switchport::rack_switch_map:
+cloudvision::switchport::rack_switch_map:
   A1: dc01-A1-tor.example.com
   A2: dc01-a2-tor.example.com
 ```
@@ -165,6 +165,10 @@ Once everything is installed, run the spec tests to make sure everything is
 working properly:
 
     bundle exec rspec spec
+
+To run just a single spec file:
+
+    bundle exec rake spec SPEC=spec/unit/puppet/provider/cloudvision_configlet/default_spec.rb
 
 ## Contributing
 
