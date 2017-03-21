@@ -45,10 +45,13 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
   end
 
   before :each do
-    allow(described_class.api).to receive(:get_configlets).and_return(configlets)
+    allow(described_class.api).to receive(:get_configlets)
+      .and_return(configlets)
     allow(provider.api).to receive(:get_configlets).and_return(configlets)
-    allow(described_class.api).to receive(:get_devices_by_configlet_name).and_return(devices)
-    allow(provider.api).to receive(:get_devices_by_configlet_name).and_return(devices)
+    allow(described_class.api).to receive(:get_devices_by_configlet_name)
+      .and_return(devices)
+    allow(provider.api).to receive(:get_devices_by_configlet_name)
+      .and_return(devices)
     load_default_settings
   end
 
@@ -59,8 +62,10 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
   describe '.prefetch' do
     let :resources do
       {
-        'api_test_0' => Puppet::Type.type(:cloudvision_configlet).new(name: @name),
-        'api_test_99' => Puppet::Type.type(:cloudvision_configlet).new(name: 'api_test_99'),
+        'api_test_0' => Puppet::Type.type(:cloudvision_configlet)
+          .new(name: @name),
+        'api_test_99' => Puppet::Type.type(:cloudvision_configlet)
+          .new(name: 'api_test_99'),
       }
     end
 
@@ -98,8 +103,10 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
 
       context 'when the resource exists on the system' do
         let(:provider) do
-          allow(described_class.api).to receive(:get_configlets).and_return(configlets)
-          allow(described_class.api).to receive(:get_devices_by_configlet_name).and_return(devices)
+          allow(described_class.api).to receive(:get_configlets)
+            .and_return(configlets)
+          allow(described_class.api).to receive(:get_devices_by_configlet_name)
+            .and_return(devices)
           described_class.instances.first
         end
         it { is_expected.to be_truthy }
@@ -116,19 +123,72 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
 
     describe '#handle_tasks(task_ids)' do
       it 'executes tasks and waits for completion' do
-        allow(provider.api).to receive(:execute_task).and_return({ 'data' => 'success' })
-        allow(provider.api).to receive(:get_task_by_id).and_return({ 'taskStatus' => 'STARTED' }, { 'taskStatus' => 'INPROGRESS' }, { 'taskStatus' => 'COMPLETED' })
+        allow(provider.api).to receive(:execute_task)
+          .and_return({ 'data' => 'success' })
+        allow(provider.api).to receive(:get_task_by_id)
+          .and_return({ 'taskStatus' => 'STARTED' },
+                      { 'taskStatus' => 'INPROGRESS' },
+                      { 'taskStatus' => 'COMPLETED' })
 
         expect(provider.api).to receive(:execute_task).with('12')
         expect(provider.api).to receive(:get_task_by_id).exactly(3).times
         provider.handle_tasks('12')
       end
     end
+
+    describe '#add_configlet_to_element(device, auto_run)' do
+      before :each do
+        allow(provider.api).to receive(:get_device_by_name)
+          .and_return({ 'taskIdList' => ['task_1'] })
+        allow(provider.api).to receive(:get_configlet_by_name)
+          .and_return(configlets['data'][0])
+        allow(provider.api).to receive(:apply_configlets_to_device)
+          .and_return({ 'data' => { 'taskIds' => ['task_1', 'task_2'] } })
+        allow(provider).to receive(:handle_tasks).and_return(nil)
+      end
+
+      it 'with defaults (auto_run=false), calls cvprac APIs and returns' do
+        expect(provider.api).to receive(:apply_configlets_to_device)
+        expect(provider).not_to receive(:handle_tasks)
+        provider.add_configlet_to_element('some_dev')
+      end
+
+      it 'with auto_run=true, calls cvprac APIs and handle_tasks' do
+        expect(provider.api).to receive(:apply_configlets_to_device)
+        expect(provider).to receive(:handle_tasks).with(['task_1', 'task_2'])
+        provider.add_configlet_to_element('some_dev', true)
+      end
+    end
+
+    describe '#remove_configlet_from_element(device, auto_run)' do
+      before :each do
+        allow(provider.api).to receive(:get_device_by_name)
+          .and_return({ 'taskIdList' => ['task_1'] })
+        allow(provider.api).to receive(:get_configlet_by_name)
+          .and_return(configlets['data'][0])
+        allow(provider.api).to receive(:remove_configlets_from_device)
+          .and_return({ 'data' => { 'taskIds' => ['task_1', 'task_2'] } })
+        allow(provider).to receive(:handle_tasks).and_return(nil)
+      end
+
+      it 'with defaults (auto_run=false), calls cvprac APIs and returns' do
+        expect(provider.api).to receive(:remove_configlets_from_device)
+        expect(provider).not_to receive(:handle_tasks)
+        provider.remove_configlet_from_element('some_dev')
+      end
+
+      it 'with auto_run=true, calls cvprac APIs and handle_tasks' do
+        expect(provider.api).to receive(:remove_configlets_from_device)
+        expect(provider).to receive(:handle_tasks).with(['task_1', 'task_2'])
+        provider.remove_configlet_from_element('some_dev', true)
+      end
+    end
   end
 
   describe 'setter property methods' do
     before:each do
-      allow(provider.api).to receive(:add_configlet).and_return('configlet_1864961_16870926403631445')
+      allow(provider.api).to receive(:add_configlet)
+        .and_return('configlet_1864961_16870926403631445')
       allow(provider).to receive(:add_configlet_to_element).and_return(nil)
     end
 
@@ -183,7 +243,8 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
 
     describe '#containers=(value)' do
       it 'sets containers on the resource' do
-        allow(provider).to receive(:remove_configlet_from_element).and_return(nil)
+        allow(provider).to receive(:remove_configlet_from_element)
+          .and_return(nil)
         allow(provider).to receive(:add_configlet_to_element).and_return(nil)
 
         provider.create
@@ -195,8 +256,10 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
     describe '#content=(value)' do
       let(:content) { "Interface Ethernet4\n   shutdown\nend" }
       it 'with auto_run=false, sets content on the resource' do
-        allow(provider.api).to receive(:get_pending_tasks_by_device).and_return(tasks_by_device)
-        allow(provider.api).to receive(:get_configlet_by_name).and_return(configlets['data'][0])
+        allow(provider.api).to receive(:get_pending_tasks_by_device)
+          .and_return(tasks_by_device)
+        allow(provider.api).to receive(:get_configlet_by_name)
+          .and_return(configlets['data'][0])
         allow(provider).to receive(:handle_tasks).and_return(nil)
 
         resource[:auto_run] = false
@@ -210,8 +273,10 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
       end
 
       it 'with auto_run=true, sets content on the resource' do
-        allow(provider.api).to receive(:get_pending_tasks_by_device).and_return(tasks_by_device)
-        allow(provider.api).to receive(:get_configlet_by_name).and_return(configlets['data'][0])
+        allow(provider.api).to receive(:get_pending_tasks_by_device)
+          .and_return(tasks_by_device)
+        allow(provider.api).to receive(:get_configlet_by_name)
+          .and_return(configlets['data'][0])
         allow(provider).to receive(:handle_tasks).and_return(nil)
 
         resource[:auto_run] = true
@@ -227,8 +292,10 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
 
     describe '#destroy' do
       it 'sets ensure to :absent' do
-        allow(provider.api).to receive(:get_configlet_by_name).and_return(configlets['data'][0])
-        allow(provider.api).to receive(:delete_configlet).and_return('success')
+        allow(provider.api).to receive(:get_configlet_by_name)
+          .and_return(configlets['data'][0])
+        allow(provider.api).to receive(:delete_configlet)
+          .and_return('success')
 
         resource[:ensure] = :absent
         expect(provider.api).to receive(:get_configlet_by_name)
@@ -246,7 +313,13 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
           'dateTimeInLongFormat' => 1_469_067_229_602,
           'factoryId' => 1,
           'config' =>
-          "!username admin privilege 15 role network-admin secret 0 admin\n!username cvpadmin privilege 15 role network-admin secret 0 arista123\nusername admin privilege 15 role network-admin secret 5 $1$7IJPvFto$.3IzcPDr5MJiBID8iCEFb1 \nusername cvpadmin privilege 15 role network-admin secret 5 $1$e8zc.bhO$G1YLdeQGXLBS1J8T.oeJT/ \n! \nmanagement api http-commands\nno shutdown\n",
+          "!username admin privilege 15 role network-admin secret 0 admin\n"\
+              "!username cvpadmin privilege 15 role network-admin secret 0 "\
+              "arista123\nusername admin privilege 15 role network-admin "\
+              "secret 5 $1$7IJPvFto$.3IzcPDr5MJiBID8iCEFb1 \n"\
+              "username cvpadmin privilege 15 role network-admin secret 5 "\
+              "$1$e8zc.bhO$G1YLdeQGXLBS1J8T.oeJT/ \n! \n"\
+              "management api http-commands\nno shutdown\n",
           'user' => 'cvpadmin',
           'note' => nil,
           'name' => 'cvp_base',
@@ -267,8 +340,10 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
       end
 
       it 'removes configlet references on nodes' do
-        allow(provider.api).to receive(:get_configlet_by_name).and_return(configlet)
-        allow(provider.api).to receive(:get_devices_by_configlet_name).and_return(devices)
+        allow(provider.api).to receive(:get_configlet_by_name)
+          .and_return(configlet)
+        allow(provider.api).to receive(:get_devices_by_configlet_name)
+          .and_return(devices)
         allow(provider).to receive(:remove_configlet_from_element)
         allow(provider.api).to receive(:delete_configlet).and_return('success')
 
