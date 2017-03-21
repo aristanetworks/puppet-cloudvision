@@ -39,7 +39,6 @@ group :development, :test do
   gem 'rspec-mocks'
   gem 'rspec-puppet'
   gem 'simplecov',               require: false
-  gem 'simplecov-json',          require: false
   gem 'simplecov-rcov',          require: false
   gem 'yard'
 end
