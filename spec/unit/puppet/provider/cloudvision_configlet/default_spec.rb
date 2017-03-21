@@ -63,9 +63,9 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
     let :resources do
       {
         'api_test_0' => Puppet::Type.type(:cloudvision_configlet)
-          .new(name: @name),
+                                    .new(name: @name),
         'api_test_99' => Puppet::Type.type(:cloudvision_configlet)
-          .new(name: 'api_test_99'),
+                                     .new(name: 'api_test_99'),
       }
     end
 
@@ -143,7 +143,7 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
         allow(provider.api).to receive(:get_configlet_by_name)
           .and_return(configlets['data'][0])
         allow(provider.api).to receive(:apply_configlets_to_device)
-          .and_return({ 'data' => { 'taskIds' => ['task_1', 'task_2'] } })
+          .and_return({ 'data' => { 'taskIds' => %w(task_1 task_2) } })
         allow(provider).to receive(:handle_tasks).and_return(nil)
       end
 
@@ -155,7 +155,7 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
 
       it 'with auto_run=true, calls cvprac APIs and handle_tasks' do
         expect(provider.api).to receive(:apply_configlets_to_device)
-        expect(provider).to receive(:handle_tasks).with(['task_1', 'task_2'])
+        expect(provider).to receive(:handle_tasks).with(%w(task_1 task_2))
         provider.add_configlet_to_element('some_dev', true)
       end
     end
@@ -167,7 +167,7 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
         allow(provider.api).to receive(:get_configlet_by_name)
           .and_return(configlets['data'][0])
         allow(provider.api).to receive(:remove_configlets_from_device)
-          .and_return({ 'data' => { 'taskIds' => ['task_1', 'task_2'] } })
+          .and_return({ 'data' => { 'taskIds' => %w(task_1 task_2) } })
         allow(provider).to receive(:handle_tasks).and_return(nil)
       end
 
@@ -179,7 +179,7 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
 
       it 'with auto_run=true, calls cvprac APIs and handle_tasks' do
         expect(provider.api).to receive(:remove_configlets_from_device)
-        expect(provider).to receive(:handle_tasks).with(['task_1', 'task_2'])
+        expect(provider).to receive(:handle_tasks).with(%w(task_1 task_2))
         provider.remove_configlet_from_element('some_dev', true)
       end
     end
@@ -314,10 +314,10 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
           'factoryId' => 1,
           'config' =>
           "!username admin privilege 15 role network-admin secret 0 admin\n"\
-              "!username cvpadmin privilege 15 role network-admin secret 0 "\
+              '!username cvpadmin privilege 15 role network-admin secret 0 '\
               "arista123\nusername admin privilege 15 role network-admin "\
               "secret 5 $1$7IJPvFto$.3IzcPDr5MJiBID8iCEFb1 \n"\
-              "username cvpadmin privilege 15 role network-admin secret 5 "\
+              'username cvpadmin privilege 15 role network-admin secret 5 '\
               "$1$e8zc.bhO$G1YLdeQGXLBS1J8T.oeJT/ \n! \n"\
               "management api http-commands\nno shutdown\n",
           'user' => 'cvpadmin',
