@@ -73,14 +73,6 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     end
   end
 
-  def self.prefetch(resources)
-    instances.each do |prov|
-      if resource = resources[prov.name]
-        resource.provider = prov
-      end
-    end
-  end
-
   def exists?
     @property_hash[:ensure] == :present
   end

@@ -33,15 +33,13 @@ module PuppetX
   # Cloudvision namespace
   module Cloudvision
     ##
-    # EapiProviderMixin module
+    # RacProviderMixin module
     module RacProviderMixin
       def prefetch(resources)
-        provider_hash = instances.each_with_object({}) do |provider, hsh|
-          hsh[provider.name] = provider
-        end
-
-        resources.each_pair do |name, resource|
-          resource.provider = provider_hash[name] if provider_hash[name]
+        instances.each do |prov|
+          if resource = resources[prov.name]
+            resource.provider = prov
+          end
         end
       end
 
