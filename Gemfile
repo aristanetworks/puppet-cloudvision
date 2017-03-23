@@ -40,6 +40,7 @@ group :development, :test do
   gem 'rspec-puppet'
   gem 'simplecov',               require: false
   gem 'simplecov-rcov',          require: false
+  gem 'webmock'
   gem 'yard'
 end
 

@@ -2,6 +2,8 @@
 require 'puppetlabs_spec_helper/module_spec_helper'
 require 'simplecov'
 require 'simplecov-rcov'
+require 'webmock/rspec'
+
 SimpleCov.formatters = [
   SimpleCov::Formatter::HTMLFormatter,
   SimpleCov::Formatter::RcovFormatter
@@ -16,6 +18,8 @@ require 'puppetlabs_spec_helper/puppet_spec_helper'
 
 dir = File.expand_path(File.dirname(__FILE__))
 Dir["#{dir}/support/**/*.rb"].sort.each { |f| require f }
+
+WebMock.disable_net_connect!(net_http_connect_on_start: true)
 
 RSpec.configure do |config|
   # rspec configuration
