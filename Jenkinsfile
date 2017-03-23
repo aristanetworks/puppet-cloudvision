@@ -24,7 +24,7 @@ node('puppet') {
                 export GEM_CVPRAC_VERSION='https://github.com/aristanetworks/cvprac-rb.git#feature-api'
                 bundle install --path=.bundle/gems
             """
-            # Stub dummy .cloudvision.yaml file
+            // Stub dummy .cloudvision.yaml file
             writeFile file: ".cloudvision.yaml", text: "---\nnodes:\n  - 192.0.2.1\nusername: 'cvpadmin'\npassword: 'idontknow'"
         }
 
