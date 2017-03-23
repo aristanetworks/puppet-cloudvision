@@ -1,0 +1,7 @@
+<%# cloudvision/templates/esx_host.erb -%>
+interface Ethernet<%= @portnum %>
+   description Host <%= @host %> managed by puppet template <%= @template %>
+   switchport
+   switchport mode trunk
+   no shutdown
+!
