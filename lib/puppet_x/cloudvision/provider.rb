@@ -69,7 +69,7 @@ module PuppetX
         search_path = ['/mnt/flash/cloudvision.yaml']
         # Add the home directory path if the HOME environement var is defined.
         search_path.insert(0, '~/.cloudvision.yaml') if ENV.key?('HOME')
-        search_path.insert(0, '.cloudvision.yaml') if ENV.key?('HOME')
+        search_path.insert(0, '.cloudvision.yaml')
         search_path.insert(0, ENV['CLOUDVISION_CONF']) if ENV.key?('CLOUDVISION_CONF')
 
         path = opts[:filename] || search_path
