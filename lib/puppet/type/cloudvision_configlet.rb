@@ -46,6 +46,7 @@ Puppet::Type.newtype(:cloudvision_configlet) do
           content     => $config,
           containers  => ['fqdn-1', ..., 'fqdn-N'],
           auto_run    => true,
+          timeout     => 600,
         }
   EOS
 
@@ -69,6 +70,32 @@ Puppet::Type.newtype(:cloudvision_configlet) do
     end
   end
 
+  newparam(:auto_run, :boolean => true, :parent => Puppet::Parameter::Boolean) do
+    desc <<-EOS
+      Should the module automatically, immediately, execute the CV task
+      generated when an assigned configlet is modified? (Default: :no)
+    EOS
+
+    defaultto false
+  end
+
+  newparam(:timeout) do
+    desc <<-EOS
+      A CVP task will be considered fo have failed or be stuck if it takes
+      longer than 'timeout' seconds. (Default: 900)
+    EOS
+
+    validate do |value|
+      unless value.is_a? Integer
+        raise "value #{value.inspect} is invalid, must be a Integer."
+      end
+    end
+
+    defaultto 900
+  end
+
+  # Properties (state management)
+
   newproperty(:containers, :array_matching => :all) do
     desc <<-EOS
       List of container names in CVP to associate with the configlet.  May be
@@ -85,17 +112,6 @@ Puppet::Type.newtype(:cloudvision_configlet) do
         raise "value #{value.inspect} is invalid, must be a String."
       end
     end
-  end
-
-  # Properties (state management)
-
-  newparam(:auto_run, :boolean => true, :parent => Puppet::Parameter::Boolean) do
-    desc <<-EOS
-      Should the module automatically, immediately, execute the CV task
-      generated when an assigned configlet is modified? (Default: :no)
-    EOS
-
-    defaultto false
   end
 
   newproperty(:content) do
