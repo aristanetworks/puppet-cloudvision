@@ -82,23 +82,47 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     @property_flush = {}
   end
 
-  def handle_tasks(task_ids)
+  def handle_tasks(task_ids, timeout = 300)
+    # Task workOrderUserDefinedStatus states:
+    #   Pending
+    #   In-Progress
+    #   FailedCompleted
+    #   Cancelled
+    #   Waiting for Reboot
+    #   Device Reboot in Progress
+    #   Configlet Push In Progress
+    #   Task Update In Progress
+    #   Completed
+    #
     task_ids = Array(task_ids) # Ensure array even if given a single string
     Puppet.debug "CVP handle_tasks(ids): #{task_ids}"
     task_ids.each do |task_id|
       result = api.execute_task(task_id)
       Puppet.debug "CVP task [#{task_id}] started with info: #{result['data']}"
-      status = { 'taskStatus' => nil }
-      while status['taskStatus'] != 'COMPLETED'
+      now = started = Time.now
+      state = nil
+      while state != 'Completed'
         status = api.get_task_by_id(task_id)
-        Puppet.debug "CVP task [#{task_id}] returned"\
-                     " status: #{status['taskStatus']}"
-        sleep 3
+        state  = status['workOrderUserDefinedStatus']
+        Puppet.debug "CVP task [#{task_id}] returned status: #{state}"
+
+        if state == 'FailedCompleted' || state == 'Cancelled'
+          raise("CVP task did not complete successfully: #{state}")
+        end
+
+        # rubocop:disable Style/GuardClause
+        if now < started + timeout
+          sleep 3
+          now = Time.now
+        else
+          raise("CVP module timed out while task still in '#{state}' state: now [#{now}] | Started: [#{started}]")
+        end
+        # rubocop:enable Style/GuardClause
       end
     end
   end
 
-  def add_configlet_to_element(dev, auto_run = false)
+  def add_configlet_to_element(dev, timeout = 300, auto_run = false)
     net_elem = api.get_device_by_name(dev)
     unless net_elem['taskIdList'].length.zero?
       Puppet.debug "CVP device #{dev} has outstanding tasks before configlet"\
@@ -111,10 +135,11 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
                                            net_elem,
                                            [{ 'name' => configlet['name'],
                                               'key' => configlet['key'] }])
-    handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds') && auto_run
+    tasks = apply['data']['taskIds'] if apply['data'].key?('taskIds')
+    handle_tasks(tasks, timeout) if tasks && auto_run
   end
 
-  def remove_configlet_from_element(dev, auto_run = false)
+  def remove_configlet_from_element(dev, timeout = 300, auto_run = false)
     net_elem = api.get_device_by_name(dev)
     unless net_elem['taskIdList'].length.zero?
       Puppet.debug "CVP device #{dev} has outstanding tasks before configlet"\
@@ -127,7 +152,8 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
                                               net_elem,
                                               [{ 'name' => configlet['name'],
                                                  'key' => configlet['key'] }])
-    handle_tasks(apply['data']['taskIds']) if apply['data'].key?('taskIds') && auto_run
+    tasks = apply['data'].key?('taskIds') ? apply['data']['taskIds'] : nil
+    handle_tasks(tasks, timeout) if tasks && auto_run
   end
 
   def create
@@ -137,7 +163,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     Puppet.debug "CVP configlet [#{cfglt_id}] was created.  Auto_run set"\
                  " to #{auto_run}"
     @resource[:containers].each do |dev|
-      add_configlet_to_element(dev)
+      add_configlet_to_element(dev, resource[:timeout], resource[:auto_run])
     end
 
     @property_hash = { name: resource[:name],
@@ -152,11 +178,11 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     adds = @resource[:containers] - value
 
     removes.each do |dev|
-      remove_configlet_from_element(dev)
+      remove_configlet_from_element(dev, resource[:timeout])
     end
 
     adds.each do |dev|
-      add_configlet_to_element(dev)
+      add_configlet_to_element(dev, resource[:timeout], resource[:auto_run])
     end
 
     @property_hash[:containers] = value
@@ -169,7 +195,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
                          value)
     tasks = api.get_pending_tasks_by_device(resource[:name])
     task_ids = tasks.map { |task| task['workOrderId'] } || []
-    handle_tasks(task_ids) if resource.auto_run?
+    handle_tasks(task_ids, resource[:timeout]) if resource.auto_run?
     @property_hash[:content] = value
   end
 
@@ -179,7 +205,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
       # Get the network elements
       devices = api.get_devices_by_configlet_name(resource[:name])
       devices['data'].each do |dev|
-        remove_configlet_from_element(dev['hostName'])
+        remove_configlet_from_element(dev['hostName'], resource[:timeout])
       end
     end
     status = api.delete_configlet(resource[:name], configlet['key'])
