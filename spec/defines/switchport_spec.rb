@@ -51,9 +51,11 @@ describe 'cloudvision::switchport' do
     <<-HEREDOC
 interface Ethernet23
    description Host server-name managed by puppet template cloudvision/single_attached_vlan.erb
-   ! Insert more configuration here.
+   switchport mode access
+   switchport access vlan 
    no shutdown
 !
+end
     HEREDOC
   end
 

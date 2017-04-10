@@ -1,6 +1,8 @@
-<%# cloudvision/templates/esx_host.erb -%>
+<%# cloudvision/templates/single_attached_vlan.erb -%>
 interface Ethernet<%= @portnum %>
    description Host <%= @host %> managed by puppet template <%= @template %>
-   ! Insert more configuration here.
+   switchport mode access
+   switchport access vlan <%= @vlan %>
    no shutdown
 !
+end
