@@ -180,9 +180,9 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
         allow(provider.api).to receive(:execute_task)
           .and_return({ 'data' => 'success' })
         allow(provider.api).to receive(:get_task_by_id)
-          .and_return({ 'taskStatus' => 'STARTED' },
-                      { 'taskStatus' => 'INPROGRESS' },
-                      { 'taskStatus' => 'COMPLETED' })
+          .and_return({ 'workOrderUserDefinedStatus' => 'Pending' },
+                      { 'workOrderUserDefinedStatus' => 'In-Progress' },
+                      { 'workOrderUserDefinedStatus' => 'Completed' })
 
         expect(provider.api).to receive(:execute_task).with('12')
         expect(provider.api).to receive(:get_task_by_id).exactly(3).times
@@ -190,7 +190,7 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
       end
     end
 
-    describe '#add_configlet_to_element(device, auto_run)' do
+    describe '#add_configlet_to_element(device, timeout, auto_run)' do
       before :each do
         allow(provider.api).to receive(:get_device_by_name)
           .and_return({ 'taskIdList' => ['task_1'] })
@@ -209,8 +209,8 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
 
       it 'with auto_run=true, calls cvprac APIs and handle_tasks' do
         expect(provider.api).to receive(:apply_configlets_to_device)
-        expect(provider).to receive(:handle_tasks).with(%w(task_1 task_2))
-        provider.add_configlet_to_element('some_dev', true)
+        expect(provider).to receive(:handle_tasks).with(%w(task_1 task_2), 30)
+        provider.add_configlet_to_element('some_dev', 30, true)
       end
     end
 
@@ -233,8 +233,8 @@ describe Puppet::Type.type('cloudvision_configlet').provider('default') do
 
       it 'with auto_run=true, calls cvprac APIs and handle_tasks' do
         expect(provider.api).to receive(:remove_configlets_from_device)
-        expect(provider).to receive(:handle_tasks).with(%w(task_1 task_2))
-        provider.remove_configlet_from_element('some_dev', true)
+        expect(provider).to receive(:handle_tasks).with(%w(task_1 task_2), 30)
+        provider.remove_configlet_from_element('some_dev', 30, true)
       end
     end
   end
