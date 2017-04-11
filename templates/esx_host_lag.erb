@@ -1,0 +1,17 @@
+<%# cloudvision/templates/esx_host_lag.erb -%>
+interface Ethernet<%= @portnum %>
+   description Host <%= @host %> managed by puppet template <%= @template %>
+   ! Insert more configuration here.
+   load-interval 30
+   channel-group <%= @portnum %> mode active
+   vmtracer vmware-esx
+   no shutdown
+!
+interface Port-Channel<%= @portnum %>
+   description Host <%= @host %> managed by puppet template <%= @template %>
+   switchport
+   switchport trunk allowed vlan 10-11,400-599
+   switchport mode trunk
+   mlag <%= @portnum %>
+   spanning-tree portfast
+!

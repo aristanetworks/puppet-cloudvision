@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Cloudvision::VERSION
   spec.authors       = ['Jere Julian', 'John Corbin']
   spec.email         = ['jere@arista.com', 'jcorbin@arista.com']
-  spec.description   = %q{Resource types to manage Arista CloudVision content}
-  spec.summary       = %q{Type and provider implementation for Arista CloudVision content}
+  spec.description   = 'Resource types to manage Arista CloudVision content'
+  spec.summary       = 'Type and provider implementation for Arista CloudVision content'
   spec.homepage      = 'https://github.com/aristanetworks/puppet-cloudvision'
   spec.license       = 'BSD-3'
 

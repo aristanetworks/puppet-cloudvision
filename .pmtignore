@@ -1,15 +1,12 @@
 Gemfile
 Gemfile.lock
+Jenkinsfile
 Rakefile
-bootstrap.sh
 coverage/
-data/
 doc/
-example/
 github*.json
-guide/
 pkg/
-results/
+pre-commit.sh
 spec/
 test/
 tests/

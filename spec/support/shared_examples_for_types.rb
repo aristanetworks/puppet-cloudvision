@@ -1,5 +1,5 @@
 # encoding: utf-8
-require 'netaddr'
+# require 'netaddr'
 
 RSpec.shared_examples 'property' do
   it 'is a property' do
@@ -50,7 +50,7 @@ end
 
 RSpec.shared_examples 'boolean' do |opts|
   attribute = opts[:attribute]
-  fail unless attribute
+  raise unless attribute
   name = opts[:name] || 'emanon'
 
   describe attribute.to_s do
@@ -69,11 +69,6 @@ RSpec.shared_examples 'boolean value' do
   [true, false, 'true', 'false', :true, :false].each do |val|
     it "accepts #{val.inspect}" do
       type[attribute] = val
-    end
-
-    it "munges #{val.inspect} to #{val.to_s.intern.inspect}" do
-      type[attribute] = val
-      expect(type[attribute]).to eq(val.to_s.intern)
     end
   end
 
@@ -258,6 +253,12 @@ RSpec.shared_examples 'array of strings value' do
       type[attribute] = val
       expect(type[attribute]).to eq([val])
     end
+  end
+
+  valu = ['foo', 'bar', 'foo bar baz']
+  it "accepts #{valu.inspect}" do
+    type[attribute] = valu
+    expect(type[attribute]).to eq(valu)
   end
 
   [-1, 4096, 8192, { foo: 1 }, true, false, nil].each do |val|

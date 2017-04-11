@@ -40,3 +40,14 @@ Style/HashSyntax:
 
 Style/BracesAroundHashParameters:
   Enabled: false
+
+Metrics/AbcSize:
+  Max: 35
+
+Metrics/MethodLength:
+  Max: 23
+
+Metrics/BlockLength:
+  Max: 140
+  Exclude:
+    - spec/unit/puppet/provider/**/*
