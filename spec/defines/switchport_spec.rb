@@ -32,7 +32,7 @@ describe 'cloudvision::switchport' do
       :port => '23',
       :template => 'cloudvision/single_attached_vlan.erb',
       #:auto_run => true,
-      #:variables => {},
+      :variables => { 'vlan' => 123 },
       :host_port_range => {
         'min' => 4,
         'max' => 60
@@ -52,7 +52,7 @@ describe 'cloudvision::switchport' do
 interface Ethernet23
    description Host server-name managed by puppet template cloudvision/single_attached_vlan.erb
    switchport mode access
-   switchport access vlan 
+   switchport access vlan 123
    no shutdown
 !
 end

@@ -2,7 +2,7 @@
 interface Ethernet<%= @portnum %>
    description Host <%= @host %> managed by puppet template <%= @template %>
    switchport mode access
-   switchport access vlan <%= @vlan %>
+   switchport access vlan <%= @variables['vlan'] %>
    no shutdown
 !
 end
