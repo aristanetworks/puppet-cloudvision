@@ -35,6 +35,7 @@ group :development, :test do
   gem 'puppet-strings'
   gem 'puppetlabs_spec_helper', '>= 1.0.0'
   gem 'rake', require: false
+  gem 'rb-readline'
   gem 'rspec'
   gem 'rspec-mocks'
   gem 'rspec-puppet'
