@@ -42,12 +42,15 @@ Style/BracesAroundHashParameters:
   Enabled: false
 
 Metrics/AbcSize:
-  Max: 35
+  Max: 43
 
 Metrics/MethodLength:
   Max: 23
 
 Metrics/BlockLength:
-  Max: 140
+  Max: 160
   Exclude:
     - spec/unit/puppet/provider/**/*
+
+Style/PredicateName:
+  Enabled: false
