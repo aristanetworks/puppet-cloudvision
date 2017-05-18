@@ -42,11 +42,14 @@ Puppet::Type.newtype(:cloudvision_configlet) do
            no shutdown'
 
         cloudvision_configlet { 'rack3-tor-Ethernet2':
-          ensure      => present,
-          content     => $config,
-          containers  => ['fqdn-1', ..., 'fqdn-N'],
-          auto_run    => true,
-          timeout     => 600,
+          ensure     => present,
+          cvp_nodes  => ['cvp1', 'cvp2', 'cvp3'],
+          cvp_user   => 'puppet_cvp_user',
+          cvp_pass   => 'cvp_password',
+          content    => $config,
+          containers => ['fqdn-1', ..., 'fqdn-N'],
+          auto_run   => true,
+          timeout    => 600,
         }
   EOS
 
@@ -77,6 +80,60 @@ Puppet::Type.newtype(:cloudvision_configlet) do
     EOS
 
     defaultto false
+  end
+
+  newparam(:cvp_nodes) do
+    desc <<-EOS
+      A list of cvp cluster node hostnames or IP addresses
+    EOS
+
+    munge do |value|
+      case value.class
+      when String
+        [value]
+      else
+        value
+      end
+    end
+
+    validate do |value|
+      case value.class
+      when Array
+        value.each do |item|
+          unless item.is_a? String
+            raise "value #{item.inspect} is invalid, must be Strings."
+          end
+        end
+      when String
+        unless item.is_a? String
+          raise "value #{item.inspect} is invalid, must be Strings."
+        end
+      end
+    end
+  end
+
+  newparam(:cvp_user) do
+    desc <<-EOS
+      CVP username
+    EOS
+
+    validate do |value|
+      unless value.is_a? String
+        raise "value #{value.inspect} is invalid, must be a String."
+      end
+    end
+  end
+
+  newparam(:cvp_pass) do
+    desc <<-EOS
+      CVP password
+    EOS
+
+    validate do |value|
+      unless value.is_a? String
+        raise "value #{value.inspect} is invalid, must be a String."
+      end
+    end
   end
 
   newparam(:timeout) do

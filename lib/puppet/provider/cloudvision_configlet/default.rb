@@ -62,24 +62,21 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
   # rubocop:enable Style/AccessorMethodName
 
   def self.instances
-    configlets = get_configlets
-    return [] if !configlets || configlets.empty?
-    Puppet.debug "configlet_instances: #{configlets.inspect}"
-    configlets.map do |name, attrs|
-      provider_hash = { name: name, ensure: :present,
-                        content: attrs[:content],
-                        containers: attrs[:containers] }
-      new(provider_hash)
-    end
+    # Unable to access API credentials at this point
   end
 
   def exists?
-    @property_hash[:ensure] == :present
-  end
-
-  def initialize(resource = {})
-    super(resource)
-    @property_flush = {}
+    begin
+      @configlet = api.get_configlet_by_name(resource[:name])
+    rescue CvpApiError
+      # CvpApiError: ERROR: get
+      #   /web/configlet/getConfigletByName.do?name=fred:: Request Error:
+      #   errorCode: 132801: Entity does not exist
+      return false
+    end
+    return false unless @configlet
+    return true if @configlet['name'] == resource[:name]
+    false
   end
 
   def handle_tasks(task_ids, timeout = 300)
@@ -98,13 +95,13 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
     Puppet.debug "CVP handle_tasks(ids): #{task_ids}"
     task_ids.each do |task_id|
       result = api.execute_task(task_id)
-      Puppet.debug "CVP task [#{task_id}] started with info: #{result['data']}"
+      Puppet.debug "CVP task #{task_id} started with info: #{result['data']}"
       now = started = Time.now
       state = nil
       while state != 'Completed'
         status = api.get_task_by_id(task_id)
         state  = status['workOrderUserDefinedStatus']
-        Puppet.debug "CVP task [#{task_id}] returned status: #{state}"
+        Puppet.debug "CVP task #{task_id} returned status: #{state}"
 
         if state == 'FailedCompleted' || state == 'Cancelled'
           raise("CVP task did not complete successfully: #{state}")
@@ -119,6 +116,7 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
         end
         # rubocop:enable Style/GuardClause
       end
+      Puppet.info "CVP task #{task_id} status: #{state}"
     end
   end
 
@@ -142,8 +140,9 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
   def remove_configlet_from_element(dev, timeout = 300, auto_run = false)
     net_elem = api.get_device_by_name(dev)
     unless net_elem['taskIdList'].length.zero?
-      Puppet.debug "CVP device #{dev} has outstanding tasks before configlet"\
-                   ' is added.'
+      Puppet.warning "CVP device #{dev} has outstanding tasks before configlet"\
+                   ' is removed.'
+      raise "CVP device #{dev} cannot be removed with outstanding tasks."
     end
 
     # Add configlet to nodes
@@ -173,6 +172,18 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
                        ensure: :present }
   end
 
+  def content
+    # @configlet populated in exists? method
+    return nil unless @configlet
+    @configlet['config'].strip
+  end
+
+  def containers
+    devices = api.get_devices_by_configlet_name(resource[:name])
+    containers = devices['data'].map { |dev| dev['hostName'] } || []
+    containers
+  end
+
   def containers=(value)
     removes = value - @resource[:containers]
     adds = @resource[:containers] - value
@@ -195,25 +206,35 @@ Puppet::Type.type(:cloudvision_configlet).provide(:default) do
                          value)
     tasks = api.get_pending_tasks_by_device(resource[:name])
     task_ids = tasks.map { |task| task['workOrderId'] } || []
-    handle_tasks(task_ids, resource[:timeout]) if resource.auto_run?
+    Puppet.info "CVP generated task #{task_ids}."\
+                 "  Auto_run set to #{resource[:auto_run]}"
+    handle_tasks(task_ids, resource[:timeout]) if resource[:auto_run]
     @property_hash[:content] = value
   end
 
   def destroy
     configlet = api.get_configlet_by_name(resource[:name])
     if configlet['netElementCount'] > 0
+      hosts = []
       # Get the network elements
       devices = api.get_devices_by_configlet_name(resource[:name])
       devices['data'].each do |dev|
-        remove_configlet_from_element(dev['hostName'], resource[:timeout])
+        remove_configlet_from_element(dev['hostName'],
+                                      resource[:timeout],
+                                      resource[:auto_run])
+        hosts << dev['hostName']
       end
+      Puppet.debug "Removed configlet #{resource[:name]} from #{hosts}."\
     end
-    status = api.delete_configlet(resource[:name], configlet['key'])
+    begin
+      status = api.delete_configlet(resource[:name], configlet['key'])
+    rescue
+      raise "Failed to delete configlet #{resource[:name]}: #{status}"
+    end
     raise "Failed to delete configlet #{resource[:name]}" if status != 'success'
-    Puppet.debug "CVP task [#{resource[:name]}] was deleted."\
-                 "  Auto_run set to #{auto_run}"
+    Puppet.debug "CVP configlet #{resource[:name]} was removed."\
+                 "  Auto_run set to #{resource[:auto_run]}"
     @property_hash = { name: resource[:name],
-                       content: resource[:content],
                        ensure: :absent }
   end
 end
