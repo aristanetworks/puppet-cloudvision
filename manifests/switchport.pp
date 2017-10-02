@@ -82,10 +82,10 @@ define cloudvision::switchport (
   String $rack,
   String $port,
   String $template,
-  Boolean $auto_run = false,
-  Optional[[Hash]] $variables = {},
   Hash $host_port_range,
   Hash $rack_switch_map,
+  Boolean $auto_run = false,
+  Optional[[Hash]] $variables = {},
 ){
   $port_range = $host_port_range
   $rack_map = $rack_switch_map
