@@ -24,7 +24,7 @@ group :development, :test do
   gem 'facter', '>= 1.7.0'
   gem 'guard'
   gem 'guard-rspec'
-  gem 'guard-rubocop'
+  gem "rubocop", ">= 0.49.0"
   gem 'guard-shell'
   gem 'metadata-json-lint'
   gem 'pry', require: false
