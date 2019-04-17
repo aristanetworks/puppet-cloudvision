@@ -24,7 +24,7 @@ group :development, :test do
   gem 'facter', '>= 1.7.0'
   gem 'guard'
   gem 'guard-rspec'
-  gem 'guard-rubocop'
+  gem "rubocop", ">= 0.49.0"
   gem 'guard-shell'
   gem 'metadata-json-lint'
   gem 'pry', require: false
@@ -59,14 +59,14 @@ if RUBY_VERSION.to_f < 2.0
   gem 'json', '< 2.0'
   group :development, :test do
     gem 'listen', '< 3.1.0'
-    gem 'rubocop', '>=0.35.1', '< 0.38'
+    gem "rubocop", ">= 0.49.0"
   end
 else
   # Rubocop thinks these are duplicates.
   # rubocop:disable Bundler/DuplicatedGem
   gem 'json'
   group :development, :test do
-    gem 'rubocop', '>=0.35.1'
+    gem "rubocop", ">= 0.49.0"
   end
   # rubocop:enable Bundler/DuplicatedGem
 end
